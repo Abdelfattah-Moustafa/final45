@@ -102,5 +102,39 @@ plt.tight_layout()
 f2 = os.path.join(OUT, "fig1_2_pipeline.png")
 plt.savefig(f2, dpi=200, bbox_inches="tight"); plt.close()
 
+# ---------------------------------------------------------------- Figure 1.3
+fig, ax = plt.subplots(figsize=(9.5, 5.0))
+ax.set_xlim(0, 12); ax.set_ylim(0, 6.4); ax.axis("off")
+
+box(ax, 0.3, 2.5, 2.3, 1.4, "Signer\n(webcam)", C_BROWSER, 10, "bold")
+box(ax, 9.4, 2.5, 2.3, 1.4, "Speaker\n(mic / speaker)", C_BROWSER, 10, "bold")
+box(ax, 4.1, 2.4, 3.8, 1.6,
+    "Server\nWebRTC media relay +\nSocket.IO signaling +\ntranslation", C_SERVER, 9, "bold")
+
+# top: signer -> speaker (sign -> text/speech)
+arrow(ax, 2.6, 3.5, 4.1, 3.5)
+arrow(ax, 7.9, 3.5, 9.4, 3.5)
+ax.text(6.0, 5.7, "Signer  ->  Speaker", fontsize=10, weight="bold", color=TXT, ha="center")
+box(ax, 3.0, 4.5, 6.0, 0.85,
+    "landmarks -> recognition -> gloss -> LLM -> captions / speech", C_LLM, 8.5)
+arrow(ax, 3.0, 4.9, 2.0, 3.92, rad=-0.2)
+arrow(ax, 9.0, 4.9, 10.0, 3.92, rad=0.2)
+
+# bottom: speaker -> signer (speech -> sign)
+arrow(ax, 9.4, 2.9, 7.9, 2.9)
+arrow(ax, 4.1, 2.9, 2.6, 2.9)
+ax.text(6.0, 0.55, "Speaker  ->  Signer", fontsize=10, weight="bold", color=TXT, ha="center")
+box(ax, 3.0, 1.05, 6.0, 0.85,
+    "speech -> STT -> gloss -> SBERT lookup -> sign avatar", C_MODEL, 8.5)
+arrow(ax, 9.0, 1.5, 10.0, 2.48, rad=-0.2)
+arrow(ax, 3.0, 1.5, 2.0, 2.48, rad=0.2)
+
+ax.set_title("Figure 1.3  —  The live two-person meeting pipeline",
+             fontsize=11, weight="bold", color=TXT, pad=8)
+plt.tight_layout()
+f3 = os.path.join(OUT, "fig1_3_meeting.png")
+plt.savefig(f3, dpi=200, bbox_inches="tight"); plt.close()
+
 print("wrote:", f1)
 print("wrote:", f2)
+print("wrote:", f3)

@@ -109,9 +109,22 @@ through semantic embedding search, which the avatar then plays back. Throughout,
 provider chains degrade gracefully to offline components so that the system
 remains functional even without cloud connectivity.
 
+These two directions are combined in the **live meeting mode**, shown in
+Fig. 1.3, which lets a signer and a speaker hold a real-time conversation. The
+two participants join a shared room and exchange audio and video over a
+peer-to-peer connection, with the server coordinating the session and performing
+translation. The signer's articulation is processed through the
+sign-to-text/speech pipeline and delivered to the speaker as live captions and
+synthesised speech, while the speaker's voice is processed through the
+speech-to-sign pipeline and presented to the signer as a sign avatar. The two
+pipelines therefore run concurrently, one per participant, so that each person
+receives the conversation in their own modality.
+
 *[Figure 1.1 — High-level architecture of the Together system]*
 
 *[Figure 1.2 — The bidirectional translation pipelines]*
+
+*[Figure 1.3 — The live two-person meeting pipeline]*
 
 ## 1.4 Thesis Organization
 
