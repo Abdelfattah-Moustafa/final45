@@ -83,6 +83,26 @@ and lacks the large, standardised benchmarks available for other languages [14].
 This scarcity is the central practical obstacle that any Arabic sign-language
 system must confront.
 
+Table 2.2 summarises the principal datasets discussed above, highlighting the
+gap in scale, signer diversity, and linguistic level between the resources
+available for American and Arabic Sign Language.
+
+**Table 2.2 — Representative public datasets for sign-language recognition.**
+
+| Dataset | Language | Level | Size | Signers | Modality |
+| --- | --- | --- | --- | --- | --- |
+| WLASL [10] | ASL | Isolated (word) | ~21,000 videos, 2,000 glosses | 100+ | RGB video |
+| KArSL [12] | ArSL | Isolated (word) | 502 signs, 75,300 samples | 3 | RGB, depth, skeleton |
+| ArASL / ArSL2018 [13] | ArSL | Alphabet (static) | 54,049 images, 32 classes | 40 | Grayscale image |
+
+Two contrasts stand out. The American resource offers an order of magnitude more
+vocabulary and far greater signer diversity than either Arabic resource, which
+makes signer-independent evaluation feasible for ASL but difficult for ArSL.
+Moreover, the larger Arabic corpus (KArSL) is recorded from only three signers,
+and the most accessible one (ArASL) covers only the static alphabet rather than
+words — neither supports sentence-level translation. The datasets actually used to
+train the models in this work are described in Chapter 3.
+
 ## 2.4 Limitations of Existing Deep-Learning Approaches
 
 Taken together, the models and datasets reviewed above expose four limitations
