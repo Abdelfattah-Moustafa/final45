@@ -1,13 +1,5 @@
 # Chapter 2 — Review of Literature
 
-This chapter reviews the systems that already attempt to translate between signed
-and spoken language — the direct competitors to *Together* — and analyses each by
-the **dataset** it is built on, the **deep-learning architecture** it employs, and
-the **limitation** that follows. It first establishes the technical background
-needed to make that analysis precise, then examines five representative
-applications in detail, and finally compares them with *Together* to show where the
-present work advances the state of practice.
-
 ## 2.1 Technical Background
 
 Sign-language translation decomposes into two directions, and the systems reviewed
@@ -35,15 +27,13 @@ Comparable continuous corpora such as How2Sign offer many hours of aligned ASL
 video and English text [17], but these resources exist only for high-resource
 languages. They are powerful yet depend on large parallel corpora of continuous
 signing — a resource that does not exist for Arabic Sign Language, whose datasets
-are small, recorded from few signers, and often limited to the alphabet (Table
-2.1) [12], [13], [14]. Finally, all of these pipelines terminate in gloss, which is
-not a grammatical sentence: sign languages use space, non-manual markers, and a
+are small, recorded from few signers, and often limited to the alphabet (Fig. 2.1)
+[12], [13], [14]. Finally, all of these pipelines terminate in gloss, which is not a
+grammatical sentence: sign languages use space, non-manual markers, and a
 Topic–Comment order that differ from spoken syntax [6], [7], so fluent output
 requires a dedicated language-generation stage. These three facts — the cost of
 recognition, the corpus dependence of translation, and the grammar gap — are the
 lenses through which the following systems are assessed.
-
-**Table 2.1 — Representative public datasets for sign-language recognition.**
 
 | Dataset | Language | Level | Size | Signers | Modality |
 | --- | --- | --- | --- | --- | --- |
@@ -55,12 +45,9 @@ lenses through which the following systems are assessed.
 | KArSL [12] | ArSL | Isolated (word) | 502 signs, 75,300 samples | 3 | RGB, depth, skeleton |
 | ArASL / ArSL2018 [13] | ArSL | Alphabet (static) | 54,049 images, 32 classes | 40 | Grayscale image |
 
-## 2.2 Existing Applications and Systems
+**Figure 2.1 — Comparison of different datasets.**
 
-Five deployed systems best represent the current state of practice. Because they
-are commercial products, their datasets and architectures are only partially
-disclosed; where a detail is reported rather than published it is described as
-such, and the absence of an open dataset is itself treated as a limitation.
+## 2.2 Existing Applications and Systems
 
 ### 2.2.1 SignAll
 
@@ -139,12 +126,33 @@ Language.
   domain-specific announcements rather than open conversation, and does not
   interpret a user's signing.
 
-## 2.3 Comparative Analysis and Positioning of *Together*
+## 2.3 Comparison with Together
 
-Table 2.2 places the five systems and *Together* side by side along the dimensions
-that matter most for accessible, everyday communication.
+Three core differences set *Together* apart, directly addressing the critical gaps
+left by existing systems:
 
-**Table 2.2 — Comparison of existing systems with *Together*.**
+- **It is fully bidirectional.** Every other product we reviewed commits to just
+  one direction. Tools like SignAll, SLAIT, and KinTrans can interpret sign
+  language but cannot produce it, while Hand Talk and Signapse generate signs but
+  cannot interpret them. *Together* handles both. Furthermore, its live meeting mode
+  runs these processes concurrently, empowering a signer and a speaker to have a
+  genuine, back-and-forth conversation — a feature none of the other five systems
+  offer.
+- **It champions both high- and low-resource languages.** While KinTrans does
+  include Arabic, it only translates from sign to spoken language and requires
+  closed hardware. *Together* elevates Arabic Sign Language (ArSL) to a first-class
+  language alongside ASL, seamlessly translating it in both directions. Rather than
+  sidestepping the data-scarcity problem documented in Fig. 2.1, *Together* tackles
+  it head-on.
+- **It is hardware-free and reproducible.** SignAll demands a calibrated
+  multi-camera rig and data gloves, and KinTrans requires a depth camera. While
+  SLAIT shares our browser-and-webcam model, it only works in one direction.
+  *Together* runs effortlessly in an ordinary web browser. Because it relies on
+  public datasets and an LLM-driven gloss-to-text pipeline, it is readily deployable
+  without specialized equipment and — unlike proprietary products — fully
+  reproducible.
+
+## 2.4 Comparative Analysis
 
 | System | Direction | Languages | Dataset | Architecture | Key limitation |
 | --- | --- | --- | --- | --- | --- |
@@ -153,52 +161,4 @@ that matter most for accessible, everyday communication.
 | SLAIT [22] | Sign → Spoken | ASL | Self-collected (small) | Webcam landmarks + deep sequence model | Limited vocabulary; one-directional |
 | KinTrans [21] | Sign → Spoken | ASL, ArSL | Proprietary multi-signer corpus | 3D-camera skeleton + ML classifier | Needs 3D-camera hardware; one-directional |
 | Signapse [19] | Spoken → Sign | BSL, ASL | Proprietary signer video | Deep generative (GAN) video | One-directional; domain-limited |
-| **Together (this work)** | **Bidirectional** | **ASL, ArSL** | **Public landmark datasets (detailed in Ch. 3)** | **Landmarks + isolated models + LLM gloss→sentence + semantic sign synthesis** | **Isolated (not continuous) signing** |
-
-Three differences set *Together* apart, each addressing a gap left by the systems
-above.
-
-**It is bidirectional.** Every reviewed product commits to a single direction:
-SignAll, SLAIT, and KinTrans interpret signing but cannot produce it, while Hand
-Talk and Signapse produce signing but cannot interpret it. *Together* implements
-both directions and, in its meeting mode, runs them concurrently so a signer and a
-speaker can actually converse — something none of the five supports.
-
-**It is bilingual across a high- and a low-resource language.** Only KinTrans
-also covers Arabic, and only in the sign-to-spoken direction on closed hardware.
-*Together* treats Arabic Sign Language as a first-class language in *both*
-directions, directly confronting the data-scarcity problem documented in §2.1
-rather than avoiding it.
-
-**It is hardware-free and reproducible.** SignAll needs a calibrated multi-camera
-rig and gloves, and KinTrans a depth camera; only SLAIT shares *Together*'s
-browser-and-webcam model, and only in one direction. *Together* runs entirely in an
-ordinary browser and is built on **public** datasets and an LLM-based gloss-to-text
-stage, making it both deployable without special equipment and, unlike the
-proprietary products, reproducible.
-
-The trade-off is honest: *Together* recognises **isolated** signs rather than
-continuous signing, so it relies on a buffer-and-language-model stage to assemble
-sentences. But this is precisely the design that removes the corpus dependence
-which makes the academic translation models of §2.1 infeasible for Arabic — and it
-is what lets a single system be bidirectional, bilingual, and browser-based at once.
-
-## 2.4 Summary and Research Gap
-
-The evidence is consistent. Recognition has matured around efficient pose- and
-graph-based models [10], [11]; the strongest translation models are corpus-hungry
-transformers available only for high-resource languages [8], [9]; Arabic Sign
-Language is held back by small, low-signer datasets [12], [13], [14]; and the
-deep-learning pipeline stops at gloss, leaving the grammar gap to a separate stage
-[6], [7]. The deployed products that build on these foundations are, as Table 2.2
-shows, uniformly single-direction, narrow in language, and frequently hardware- or
-data-bound [18]–[22].
-
-The gap is therefore clear and unfilled: **no available system is at once
-bidirectional, bilingual across a high- and a low-resource sign language, and
-deployable in an ordinary web browser.** *Together* targets exactly this gap with a
-modular, gloss-mediated design — a lightweight landmark-based recogniser feeding a
-general-purpose language model — that sidesteps the corpus dependence blocking the
-academic approaches while surpassing the single-direction, hardware-bound limits of
-the commercial ones. The design and implementation of this system are presented in
-the chapters that follow.
+| **Together (this work)** | **Bidirectional** | **ASL, ArSL** | **Public datasets** | **Landmarks + isolated models + LLM gloss→sentence** | **Isolated (not continuous) signing** |
