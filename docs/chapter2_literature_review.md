@@ -1,113 +1,121 @@
 # Chapter 2 — Review of Literature
 
 Whereas the previous chapter introduced the problem in general terms, this
-chapter reviews the body of work that relates specifically to the design of
-*Together*. It begins with the linguistic foundations that explain *why* sign
-translation cannot be treated as a simple word-for-word mapping, then surveys
-prior work in sign-language recognition and translation, examines the state of
-research on Arabic Sign Language, and finally synthesises these threads into the
-research gap that this project addresses.
+chapter reviews the work most relevant to the design of *Together*. It focuses on
+the deep-learning models that have been applied to sign-language recognition and
+translation, the datasets that those models are trained on, and the limitations
+that follow from both. It then surveys the systems already deployed for the same
+purpose and, finally, synthesises these threads into the research gap that this
+project addresses.
 
-## 2.1 Linguistic Foundations of Sign Languages
+## 2.1 Deep-Learning Models for Sign Language Recognition
 
-A recurring misconception is that signing is a manual re-encoding of a spoken
-language. Linguistic research has long established the opposite: sign languages
-are full, autonomous natural languages with their own phonology, morphology, and
-syntax, exhibiting the same structural complexity and universals found in spoken
-languages [6]. They are not derived from the surrounding spoken language, and
-their grammar is organised around the visual–spatial modality rather than a
-linear stream of words.
+Sign-language recognition has followed the same architectural trajectory as the
+wider field of video understanding. Early systems combined hand-crafted features
+with hidden Markov models, but these have been almost entirely superseded by deep
+neural networks, which fall into three broad families.
 
-Two properties of sign-language grammar are particularly relevant to automatic
-translation. The first is the **use of space and non-manual markers**: facial
-expressions, head tilts, eye gaze, and body posture are not paralinguistic
-decoration but carry grammatical meaning, marking questions, negation,
-conditionals, and topic [7]. The second is **word order**: many sign languages,
-including American Sign Language, favour a Topic–Comment structure in which the
-topic is established first and then commented upon, producing an ordering that
-differs systematically from the subject–verb–object order of languages such as
-English.
+The first family operates on **raw video**. Two-dimensional convolutional
+networks extract per-frame appearance features that are then aggregated over time
+by recurrent layers such as long short-term memory (LSTM) or gated recurrent
+units (GRU), while three-dimensional convolutional networks such as I3D learn
+spatio-temporal features directly from the video volume. On the Word-Level ASL
+benchmark, such appearance-based models — including an I3D variant — form the
+strongest video baselines but are computationally heavy [10].
 
-Together, these properties mean that the raw output of a sign recogniser — a
-sequence of sign labels, or *gloss* — is not a grammatical sentence in the
-target spoken language. A faithful translation must reorder the gloss, insert the
-function words and morphology that signing conveys spatially or non-manually, and
-resolve the grammatical role of each sign. This linguistic gap is the central
-justification for treating gloss as an intermediate representation and for
-employing a dedicated language-generation stage, as discussed in the following
-sections.
+The second family operates on **pose or skeleton** data, in which the body,
+hands, and face are first reduced to a set of keypoints and only those keypoints
+are modelled. Because the input is far smaller than a video frame, these models
+are markedly more efficient. Graph convolutional networks (GCNs), which treat the
+skeleton as a graph of joints, have proven especially effective: the skeleton-aware
+multi-modal approach of Jiang et al. built a GCN over sign keypoints and combined
+it with complementary streams to achieve state-of-the-art isolated recognition,
+demonstrating that pose alone carries most of the discriminative signal [11].
+Pose-based baselines on the same word-level benchmark confirm that keypoint models
+rival appearance models at a fraction of the cost [10].
 
-## 2.2 Sign Language Recognition
+The third and most recent family applies **transformer** architectures, whose
+self-attention mechanism captures long-range temporal dependencies without
+recurrence and now underpins much of the state of the art in both recognition and
+translation. The clear trend across all three families is a move from heavy
+appearance-based recurrent models toward lighter pose-based and attention-based
+ones — a trend this project follows by classifying signs from extracted landmarks
+rather than from raw frames.
 
-Early approaches to sign-language recognition relied on sensor-based capture,
-using instrumented gloves or motion sensors to record hand configuration and
-movement. While accurate, such systems require specialised and often intrusive
-hardware, limiting their practicality for everyday use. The field has therefore
-shifted decisively toward **vision-based recognition**, which operates on
-ordinary video.
+## 2.2 Deep-Learning Models for Sign Language Translation
 
-### 2.2.1 Vision-based and skeleton-based recognition
+Recognition produces *gloss* — a sequence of sign labels — whereas translation
+must produce a grammatical sentence in the target spoken language. The task was
+formalised as a neural sequence-to-sequence problem by Camgöz et al., who paired a
+convolutional visual encoder with an attention-based recurrent encoder–decoder and
+used gloss as an intermediate supervision signal between video and text [8]. This
+established the two paradigms that still define the field: **gloss-based**
+(two-stage) translation, which recognises signs into gloss and then translates the
+gloss, and **end-to-end** translation, which maps signing directly to text.
 
-Vision-based recognition is commonly divided into *isolated* recognition, which
-classifies a single sign performed in a segmented clip, and *continuous*
-recognition, which must additionally locate sign boundaries within an unbroken
-stream. To support data-driven research, large-scale benchmarks have been
-introduced; the Word-Level American Sign Language (WLASL) dataset, for example,
-provides thousands of glosses performed by many signers and has become a standard
-benchmark for isolated recognition, with baselines spanning both appearance-based
-and pose-based methods [10].
+Subsequent work replaced the recurrent backbone with transformers, jointly
+learning recognition and translation in a single network and improving accuracy,
+while confirming that gloss-level information remains a strong intermediate signal
+even for powerful models [9]. Two points are decisive for the present work. First,
+these are large supervised sequence-to-sequence models. Second, they are trained
+on parallel corpora of continuous signing aligned to text — resources that exist
+for only a handful of high-resource languages, and not for Arabic Sign Language.
 
-A significant trend is the move from raw-pixel models toward **skeleton- or
-landmark-based** representations, in which the body, hand, and face are reduced to
-a compact set of keypoints before classification. Skeleton-aware multi-modal
-approaches have achieved strong results by combining keypoint streams with
-complementary modalities, demonstrating that pose information alone captures much
-of the signal needed for recognition while being far more efficient than
-full-frame video [11]. This finding directly motivates the landmark-based
-front-end adopted in this project, which classifies signs from extracted keypoints
-rather than from images.
+## 2.3 Datasets for Sign Language Recognition
 
-## 2.3 Sign Language Translation
+Because deep models are data-driven, the available datasets shape what is
+achievable, and here the asymmetry between languages is stark.
 
-Recognition alone yields gloss, not fluent language; *translation* is the further
-step of producing a grammatical sentence in the target spoken language. The task
-was formalised as a neural sequence-to-sequence problem by Camgöz et al., who
-introduced a benchmark for sign-language translation and an encoder–decoder model
-with attention, explicitly using gloss as an intermediate supervision signal
-between video and spoken-language text [8]. This established gloss as a useful
-pivot representation: recognising signs into gloss and then translating gloss into
-text decomposes a very hard problem into two more tractable ones.
+For American Sign Language, the Word-Level ASL dataset provides on the order of
+two thousand glosses performed by more than one hundred signers, collected from
+web video, and has become the standard isolated-recognition benchmark [10]. Its
+scale and signer diversity make signer-independent evaluation meaningful, but it
+remains an *isolated*-sign resource rather than a continuous, sentence-level one.
 
-Subsequent work replaced the recurrent architecture with transformers, jointly
-learning recognition and translation in a single network and improving
-performance, while confirming that gloss-level information remains a strong
-intermediate signal even as models grow more powerful [9]. These results validate
-a two-stage, gloss-mediated design. They also highlight a practical limitation:
-such end-to-end translation models are trained on large parallel corpora of
-continuous signing, which exist for a small number of high-resource languages but
-not for most sign languages — a constraint that strongly shapes the present work.
+For Arabic Sign Language the picture is far thinner. The ArASL dataset consists of
+tens of thousands of static images covering only the manual alphabet, supporting
+letter recognition but not word- or sentence-level translation [13]. The KArSL
+database is larger in vocabulary, offering several hundred isolated signs captured
+in multiple modalities, but it is recorded from only a small number of signers,
+which limits signer-independent generalisation [12]. Broader surveys confirm that
+Arabic sign-language research is fragmented across image- and sensor-based methods
+and lacks the large, standardised benchmarks available for other languages [14].
+This scarcity is the central practical obstacle that any Arabic sign-language
+system must confront.
 
-## 2.4 Arabic Sign Language
+## 2.4 Limitations of Existing Deep-Learning Approaches
 
-Compared with American Sign Language, Arabic Sign Language (ArSL) is markedly
-**under-resourced**. Much of the available research targets the manual alphabet
-or isolated signs rather than continuous translation. Representative of dataset
-efforts at the alphabet level, the ArASL dataset provides a large collection of
-labelled images of Arabic sign-language letters, enabling static recognition of
-the alphabet but not sentence-level translation [13]. Broader surveys of the
-field have compared image-based and sensor-based recognition techniques for ArSL,
-documenting both the diversity of approaches and the persistent scarcity of
-standardised data [14].
+Taken together, the models and datasets reviewed above expose four limitations
+that directly motivate the design choices in this thesis.
 
-More recent efforts have begun to close the data gap. The KArSL database, for
-instance, offers a comparatively large, multi-modal Arabic sign-language corpus
-recorded from multiple signers, together with recognition benchmarks [12]. Even
-so, the ArSL literature remains dominated by isolated recognition, frequently
-relies on controlled capture or specialised sensors, and offers very little in
-the way of fluent, bidirectional, sentence-level translation. This imbalance
-between the rich tooling available for ASL and the sparse resources for ArSL is
-precisely the gap that motivates treating ArSL as a first-class language in this
-project.
+**Data dependence.** End-to-end and large gloss-based translation models require
+substantial parallel corpora of continuous signing aligned to text [8], [9]. Such
+corpora do not exist for Arabic Sign Language, making the most powerful published
+architectures infeasible to reproduce for a low-resource language.
+
+**Cost and deployment.** The most accurate appearance-based recognisers rely on
+3D convolutions or deep recurrent stacks that are expensive to run, which is at
+odds with real-time operation in a browser; lighter pose-based models are a more
+practical foundation [10], [11].
+
+**Generalisation to unseen signers.** Models trained on few signers tend to
+overfit to their appearance and articulation, so accuracy on previously unseen
+signers can drop sharply. This risk is greatest precisely where data is scarce,
+as with Arabic Sign Language, and it makes the distinction between
+signer-dependent and signer-independent evaluation essential.
+
+**The grammar gap.** Recognition architectures emit gloss, but gloss is not a
+grammatical sentence. Sign languages organise meaning through space, non-manual
+markers, and a Topic–Comment order that differ systematically from spoken-language
+syntax [6], [7]. Bridging this gap requires a dedicated language-generation stage
+capable of reordering tokens and inserting the function words and morphology that
+signing conveys non-manually — a capability that recognition models do not
+provide.
+
+These limitations point away from a single end-to-end network and toward a
+modular design: a lightweight pose-based recogniser, followed by a general-purpose
+language model that supplies the missing grammar without requiring a parallel
+signing corpus for the target language.
 
 ## 2.5 Existing Systems and Commercial Solutions
 
@@ -159,28 +167,24 @@ zero-install browser deployment.
 
 ## 2.6 Summary and Research Gap
 
-The reviewed literature and existing systems support five conclusions. First,
-sign languages are
-grammatically distinct from spoken languages, so translation requires more than
-recognition; the gloss produced by a recogniser must be restructured into fluent
-text [6], [7]. Second, vision- and landmark-based recognition has matured to the
-point where signs can be classified efficiently from keypoints without
-specialised hardware [10], [11]. Third, gloss-mediated, two-stage translation is a
-well-validated design, but the strongest end-to-end models depend on large
-parallel corpora that exist only for a few high-resource languages [8], [9].
-Fourth, Arabic Sign Language remains under-resourced, with most work confined to
-isolated or alphabet-level recognition rather than translation [12], [13], [14].
-Fifth, as Table 2.1 shows, deployed commercial systems are uniformly
-single-direction, narrow in language coverage, and frequently hardware-bound
-[15]–[19].
+The reviewed models, datasets, and systems support a consistent set of
+conclusions. Recognition has matured around efficient pose- and graph-based models
+[10], [11]; translation is reliably framed as a gloss-mediated sequence-to-sequence
+problem, but its strongest forms depend on large parallel corpora that exist only
+for high-resource languages [8], [9]; Arabic Sign Language is constrained by small,
+mostly isolated or alphabet-level datasets recorded from few signers [12], [13],
+[14]; and the deep-learning pipeline ends at gloss, leaving the grammar gap to be
+closed by a separate stage [6], [7]. The deployed commercial systems, as Table 2.1
+shows, are uniformly single-direction, narrow in language coverage, and frequently
+hardware-bound [15]–[19].
 
-From these observations, a clear gap emerges. There is, at present, no widely
-available system that is simultaneously *bidirectional*, *bilingual* across a
-high-resource and a low-resource sign language, and *deployable in an ordinary web
-browser*. The corpus dependence of end-to-end models makes them ill-suited to
-ArSL, suggesting instead a modular, gloss-mediated design in which an isolated
-recogniser feeds a general-purpose language model that supplies the missing
-grammatical structure — an approach that does not require a large parallel signing
-corpus for the target language. The remainder of this thesis develops exactly such
-a system, the design and implementation of which are presented in the chapters
-that follow.
+From these observations, a clear gap emerges. No widely available system is
+simultaneously *bidirectional*, *bilingual* across a high-resource and a
+low-resource sign language, and *deployable in an ordinary web browser*. The
+corpus dependence of end-to-end models makes them ill-suited to Arabic Sign
+Language, which argues instead for a modular, gloss-mediated design in which a
+lightweight isolated recogniser feeds a general-purpose language model that
+supplies the missing grammatical structure — without requiring a large parallel
+signing corpus for the target language. The remainder of this thesis develops
+exactly such a system, the design and implementation of which are presented in the
+chapters that follow.
