@@ -93,9 +93,11 @@ for i, (t, c) in enumerate(steps):
     if i < len(steps) - 1:
         arrow(ax, x + w, y + h / 2, x + w + gap, y + h / 2)
     x += w + gap
-box(ax, 3.3, 0.7, 5.0, 1.2,
-    "Buffer: ≥18 frames → vote (size 4, stability 2)\nconfidence: ASL 0.80 · ArSL 0.65", "#f1f5f9", 8.5)
-arrow(ax, 5.0, 3.0, 5.0, 1.9, ls="--", lw=1.2)
+box(ax, 3.2, 0.5, 6.2, 1.4,
+    "Pad / trim to 60 frames (NaN for missing hands)\n"
+    "majority vote over last 15 · accept ≥ 0.80 / 0.65\n"
+    "gloss → LLM after 5 s of no hands", "#f1f5f9", 8)
+arrow(ax, 6.2, 3.0, 6.2, 1.95, ls="--", lw=1.2)
 title(ax, "Figure 3.3  —  Sign → Text / Speech pipeline")
 save(fig, "fig3_3_sign2text.png")
 
@@ -115,16 +117,16 @@ save(fig, "fig3_4_text2sign.png")
 
 # ---------------------------------------------------------- Fig 3.5 Model architectures
 fig, ax = plt.subplots(figsize=(9.5, 6)); ax.set_xlim(0, 12); ax.set_ylim(0, 9); ax.axis("off")
-ax.text(3.0, 8.4, "(a) ASL — landmark-sequence model (TFLite)", ha="center", fontsize=9.5, weight="bold", color=TXT)
-asl = ["Input: ~130 selected\nlandmarks × T", "Normalise +\naugment (CutMix…)",
-       "1D-Conv + Transformer\nencoder (Squeezeformer)", "Global pooling",
-       "Dense → 250\nsoftmax → TFLite"]
+ax.text(3.0, 8.4, "(a) ASL — preprocessing + Squeezeformer (TFLite)", ha="center", fontsize=9, weight="bold", color=TXT)
+asl = ["Select 236 pts (of 543)\ndrop Z → use (X, Y)", "Nose-center (#17)\n+ std normalise",
+       "Temporal diffs [x, dx, dx²]\n→ 1416 / frame", "Stem Conv → 192",
+       "Conv1D blocks (causal DW\nk=17 + ECA) + transformer", "GAP → Dense 250\nsoftmax → TFLite"]
 y = 7.2
 for t in asl:
-    box(ax, 1.4, y, 3.2, 0.85, t, C_ML, 8.5)
+    box(ax, 1.2, y, 3.5, 0.8, t, C_ML, 7.5)
     if t != asl[-1]:
-        arrow(ax, 3.0, y, 3.0, y - 0.45)
-    y -= 1.3
+        arrow(ax, 2.95, y, 2.95, y - 0.5)
+    y -= 1.2
 ax.text(9.0, 8.4, "(b) ArSL — CNN-GRU model", ha="center", fontsize=9.5, weight="bold", color=TXT)
 ar = ["Input: N × 177\nskeletal sequence", "Conv1D 177→128\n(k=3) + BN + ReLU",
       "Conv1D 128→128\n(k=3) + BN + ReLU", "Bi-GRU 128→64\n2 layers, dropout 0.3",

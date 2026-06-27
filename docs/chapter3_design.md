@@ -95,8 +95,11 @@ by 21 Deaf signers. Crucially, the dataset does not contain raw video; each samp
 is a sequence of **MediaPipe landmarks** — 543 points per frame (face, pose, and
 both hands), stored as x/y/z coordinates. This format aligns exactly with the
 browser front-end, so the same landmark representation is used for training and for
-live inference. The ArSL model is trained on the **ASL 20-Words (Arabic) dataset**
-of Balaha [26], a set of 20 isolated Arabic sign words.
+live inference. From this corpus, a working subset of 4,078 sequences is used for
+the present work, partitioned into training (2,770; ≈68%), validation (748; ≈18%),
+and test (560; ≈14%) sets following a WLASL-style split. The ArSL model is trained
+on the **ASL 20-Words (Arabic) dataset** of Balaha [26], a set of 20 isolated Arabic
+sign words.
 
 **Table 3.1 — Datasets used to train the recognition models.**
 
@@ -111,14 +114,17 @@ of Balaha [26], a set of 20 isolated Arabic sign words.
 ## 3.5 Sign-to-Text / Speech Subsystem
 
 The sign-to-spoken pipeline is shown in Fig. 3.3. The browser streams landmark
-frames to the server, where the appropriate model classifies each isolated sign.
-Because the models recognise one sign at a time, raw predictions are passed through
-a **voting buffer** that debounces them before they are committed: a minimum
-sequence length is required before any prediction is made, a short vote window
-selects the most consistent label, and a per-language confidence threshold (0.80
-for ASL, 0.65 for ArSL) rejects uncertain detections. The committed signs form a
-gloss sequence, which is sent to the language stage (§3.6) and, optionally, spoken
-through text-to-speech.
+frames to the server, where each prediction operates on a fixed window of **60
+frames**: shorter streams are padded by repeating the last valid frame and longer
+ones are trimmed to the most recent 60, with occluded hands represented as NaN
+rather than zero so that missing landmarks are not pinned to the origin. Because the
+models recognise one sign at a time, raw predictions are passed through a **voting
+buffer** that debounces them: a prediction is accepted only if its top probability
+exceeds the confidence threshold (0.80 for ASL, 0.65 for ArSL), and a majority vote
+over the last 15 accepted predictions suppresses jitter. The voted signs accumulate
+into a gloss sequence, which is sent to the language stage (§3.6) once the user's
+hands leave the frame for several seconds, and is optionally spoken through
+text-to-speech.
 
 ![Figure 3.3](figures/fig3_3_sign2text.png)
 
@@ -126,15 +132,21 @@ through text-to-speech.
 
 The two recognition models are designed around the landmark representation rather
 than raw pixels, as motivated in Chapter 2. Their architectures are shown in
-Fig. 3.5. The ASL model follows the design of the top-performing solution to the
-Google ISLR competition. From the 543 MediaPipe landmarks it selects roughly 130
-informative points — the lips, eyes, and nose together with both hands and
-upper-body pose — normalises them, and applies sign-specific augmentations such as
-CutMix, finger dropout, and time stretching during training. The selected landmark
-sequence is encoded by a hybrid **1D-convolution + Transformer (Squeezeformer-style)
-encoder** that captures both local temporal patterns and long-range dependencies,
-followed by global pooling and a 250-way softmax classifier. The model is trained in
-PyTorch and exported to TFLite for efficient server-side inference.
+Fig. 3.5. The ASL model adapts the Squeezeformer design of the top-performing solution to the
+Google ISLR competition and embeds its own preprocessing. From the 543 MediaPipe
+landmarks per frame it keeps **236** informative points (lips, both hands, and upper
+body) and discards the dense facial mesh; it then **drops the z axis and uses only
+the (x, y) coordinates**, centres them on the nose landmark, and normalises by the
+sequence standard deviation. Two temporal differences (first- and second-order, dx
+and dx²) are concatenated with the coordinates, giving **1,416 features per frame**
+over a fixed **60-frame** window. A stem convolution projects these to a
+192-dimensional representation, which is processed by a stack of Conv1D blocks —
+each combining a point-wise convolution, a **causal depthwise convolution** (kernel
+size 17) that prevents future frames from leaking into past ones, and Efficient
+Channel Attention (ECA) with a residual connection — interleaved with multi-head
+self-attention and a transformer block. Global average pooling and a 250-way softmax
+produce the prediction, and the model is exported to TFLite for server-side
+inference.
 
 The ArSL model is a compact **CNN-GRU** that operates on a 177-dimensional skeletal
 feature vector per frame. Two one-dimensional convolutional blocks (177→128 then
@@ -148,8 +160,9 @@ then 64→20) with a softmax yield the 20-class prediction.
 
 **Figure 3.5 — Recognition model architectures.**
 
-> Note: training hyperparameters (optimiser, learning rate, epochs, and input
-> window length) are reported in Chapter 4.
+> Note: data augmentation, regularization (Drop-Path, late dropout, AWP), and the
+> full training schedule (optimiser, learning rate, epochs) are detailed in
+> Chapter 4.
 
 ## 3.6 Gloss-to-Sentence Translation
 
