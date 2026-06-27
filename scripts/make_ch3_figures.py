@@ -128,7 +128,7 @@ for t in asl:
         arrow(ax, 2.95, y, 2.95, y - 0.5)
     y -= 1.2
 ax.text(9.0, 8.4, "(b) ArSL — CNN-GRU model", ha="center", fontsize=9.5, weight="bold", color=TXT)
-ar = ["Input: N × 177\nskeletal sequence", "Conv1D 177→128\n(k=3) + BN + ReLU",
+ar = ["Input: 30 × 177\n(59 pts × 3, Z = 0)", "Conv1D 177→128\n(k=3) + BN + ReLU",
       "Conv1D 128→128\n(k=3) + BN + ReLU", "Bi-GRU 128→64\n2 layers, dropout 0.3",
       "FC 128→64\nReLU + Dropout 0.5", "FC 64→20\nsoftmax"]
 y = 7.2

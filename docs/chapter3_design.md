@@ -98,18 +98,17 @@ browser front-end, so the same landmark representation is used for training and 
 live inference. From this corpus, a working subset of 4,078 sequences is used for
 the present work, partitioned into training (2,770; ≈68%), validation (748; ≈18%),
 and test (560; ≈14%) sets following a WLASL-style split. The ArSL model is trained
-on the **ASL 20-Words (Arabic) dataset** of Balaha [26], a set of 20 isolated Arabic
-sign words.
+on the **Arabic Sign Language 20-Words dataset** of Balaha [26], comprising 8,437
+video samples of 20 isolated Arabic sign words recorded by 72 volunteers (aged
+20–24) with ordinary mobile-phone cameras in natural backgrounds, partitioned by a
+stratified 80/10/10 train/validation/test split.
 
 **Table 3.1 — Datasets used to train the recognition models.**
 
 | Dataset | Language | Classes | Samples | Signers | Representation |
 | --- | --- | --- | --- | --- | --- |
 | Google ISLR [25] | ASL | 250 | ~100,000 | 21 | MediaPipe landmarks (543 pts) |
-| Balaha ASL-20 [26] | ArSL | 20 | [N] | [N] | video → landmarks |
-
-> Note: fill the bracketed ArSL sample/signer counts from the dataset page; they
-> were not publicly listed at the time of writing.
+| Balaha ArSL-20 [26] | ArSL | 20 | 8,437 | 72 | MediaPipe landmarks (59 pts; x, y) |
 
 ## 3.5 Sign-to-Text / Speech Subsystem
 
@@ -154,9 +153,15 @@ because the preprocessing lives in the graph, the client only sends raw landmark
 the server's interpreter performs the rest.
 
 The ArSL model is a compact **CNN-GRU** that operates on a 177-dimensional skeletal
-feature vector per frame. Two one-dimensional convolutional blocks (177→128 then
-128→128, kernel size 3, each followed by batch normalisation and ReLU) extract local
-spatio-temporal features; a two-layer **bidirectional GRU** (128→64 hidden units,
+feature vector per frame. The features are built from **59 MediaPipe landmarks** —
+17 upper-body pose points (indices 0–16) and 21 points per hand — with three
+coordinate slots each (59 × 3 = 177); the **z axis is zeroed** to avoid depth-scaling
+distortion across cameras, so only (x, y) carry information. The coordinates are
+centred on the shoulder midpoint and scaled by the shoulder width for position and
+scale invariance, and each clip is resampled to a fixed **30 frames** (longer clips
+downsampled, shorter ones padded). Two one-dimensional convolutional blocks (177→128
+then 128→128, kernel size 3, each followed by batch normalisation and ReLU) extract
+local spatio-temporal features; a two-layer **bidirectional GRU** (128→64 hidden units,
 dropout 0.3) models the temporal dynamics, producing a 128-dimensional
 representation; and two fully connected layers (128→64 with ReLU and dropout 0.5,
 then 64→20) with a softmax yield the 20-class prediction.
@@ -165,9 +170,9 @@ then 64→20) with a softmax yield the 20-class prediction.
 
 **Figure 3.5 — Recognition model architectures.**
 
-> Note: data augmentation, regularization (Drop-Path, late dropout, AWP), and the
-> full training schedule (optimiser, learning rate, epochs) are detailed in
-> Chapter 4.
+> Note: data augmentation and the full training schedule for both models — for ASL,
+> Drop-Path, late dropout, and AWP; for ArSL, Adam with ReduceLROnPlateau, early
+> stopping, and mirroring/affine/temporal augmentation — are detailed in Chapter 4.
 
 ## 3.6 Gloss-to-Sentence Translation
 
