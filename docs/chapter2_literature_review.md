@@ -18,17 +18,22 @@ two-dimensional CNNs with recurrent aggregation, or three-dimensional CNNs such 
 I3D — and pose-based networks that operate on extracted skeleton keypoints, of
 which graph convolutional networks are the strongest; on a 2,000-sign vocabulary
 both families remain below ~35% top-1 accuracy, but pose-based models match
-appearance models at far lower cost [10]. The skeleton-aware graph approach later
-won the signer-independent recognition challenge with around 98% accuracy on a
-smaller vocabulary, confirming that keypoint models generalise to unseen signers
-when training data is diverse [11].
+appearance models at far lower cost [10]. Microsoft's MS-ASL provides a comparably
+large American benchmark of 1,000 signs recorded from 222 signers in unconstrained
+conditions [15], while the Turkish AUTSL corpus added depth and skeleton modalities
+for 226 signs [16]. The skeleton-aware graph approach later won the
+signer-independent recognition challenge on AUTSL with around 98% accuracy,
+confirming that keypoint models generalise to unseen signers when training data is
+diverse [11].
 
 The **spoken-to-sign** direction, and full translation, was formalised by Camgöz et
 al., who paired a CNN visual encoder with an attention-based recurrent
 encoder–decoder and used gloss as an intermediate representation [8], later
 replacing it with a transformer trained jointly for recognition and translation via
 a CTC loss, which roughly doubled quality on the German PHOENIX14T corpus [9].
-These models are powerful but depend on large parallel corpora of continuous
+Comparable continuous corpora such as How2Sign offer many hours of aligned ASL
+video and English text [17], but these resources exist only for high-resource
+languages. They are powerful yet depend on large parallel corpora of continuous
 signing — a resource that does not exist for Arabic Sign Language, whose datasets
 are small, recorded from few signers, and often limited to the alphabet (Table
 2.1) [12], [13], [14]. Finally, all of these pipelines terminate in gloss, which is
@@ -43,6 +48,10 @@ lenses through which the following systems are assessed.
 | Dataset | Language | Level | Size | Signers | Modality |
 | --- | --- | --- | --- | --- | --- |
 | WLASL [10] | ASL | Isolated (word) | ~21,000 videos, 2,000 glosses | 100+ | RGB video |
+| MS-ASL [15] | ASL | Isolated (word) | ~25,000 videos, 1,000 signs | 222 | RGB video |
+| AUTSL [16] | Turkish SL | Isolated (word) | 38,336 samples, 226 signs | 43 | RGB, depth, skeleton |
+| How2Sign [17] | ASL | Continuous (sentence) | 80+ hours | 11 | RGB, depth, pose, speech |
+| PHOENIX14T [8] | German SL | Continuous (sentence) | 8,257 sentences, 1,066 glosses | 9 | RGB video |
 | KArSL [12] | ArSL | Isolated (word) | 502 signs, 75,300 samples | 3 | RGB, depth, skeleton |
 | ArASL / ArSL2018 [13] | ArSL | Alphabet (static) | 54,049 images, 32 classes | 40 | Grayscale image |
 
@@ -55,7 +64,7 @@ such, and the absence of an open dataset is itself treated as a limitation.
 
 ### 2.2.1 SignAll
 
-SignAll translates American Sign Language into English text at kiosks and in
+SignAll [20] translates American Sign Language into English text at kiosks and in
 educational tools, and is one of the few systems to attempt sign-to-text rather
 than the easier reverse direction.
 
@@ -71,7 +80,7 @@ than the easier reverse direction.
 
 ### 2.2.2 Hand Talk
 
-Hand Talk is a widely adopted mobile application and website plug-in that converts
+Hand Talk [18] is a widely adopted mobile application and website plug-in that converts
 written and spoken language into sign through a three-dimensional avatar (Hugo),
 for ASL and Brazilian Sign Language (Libras).
 
@@ -88,7 +97,7 @@ for ASL and Brazilian Sign Language (Libras).
 
 ### 2.2.3 SLAIT
 
-SLAIT demonstrated real-time American Sign Language recognition running directly in
+SLAIT [22] demonstrated real-time American Sign Language recognition running directly in
 a web browser from an ordinary webcam, and is the closest competitor in deployment
 model to *Together*.
 
@@ -103,7 +112,7 @@ model to *Together*.
 
 ### 2.2.4 KinTrans
 
-KinTrans converts signing into text and voice for enterprise settings such as
+KinTrans [21] converts signing into text and voice for enterprise settings such as
 service counters, and is notable for supporting Arabic Sign Language alongside ASL.
 
 - **Dataset.** A large proprietary multi-signer corpus recorded by the company,
@@ -117,7 +126,7 @@ service counters, and is notable for supporting Arabic Sign Language alongside A
 
 ### 2.2.5 Signapse
 
-Signapse generates photorealistic sign-language video from text for fixed contexts
+Signapse [19] generates photorealistic sign-language video from text for fixed contexts
 such as transport announcements and website content, in British and American Sign
 Language.
 
@@ -139,11 +148,11 @@ that matter most for accessible, everyday communication.
 
 | System | Direction | Languages | Dataset | Architecture | Key limitation |
 | --- | --- | --- | --- | --- | --- |
-| SignAll [17] | Sign → Spoken | ASL | Proprietary ASL corpus | Multi-camera CV + marker gloves + rule-based NLP | Needs camera rig + gloves; not portable |
-| Hand Talk [15] | Spoken → Sign | ASL, Libras | Curated animation dictionary | Text→gloss + 3D avatar | One-directional; fixed vocabulary |
-| SLAIT [19] | Sign → Spoken | ASL | Self-collected (small) | Webcam landmarks + deep sequence model | Limited vocabulary; one-directional |
-| KinTrans [18] | Sign → Spoken | ASL, ArSL | Proprietary multi-signer corpus | 3D-camera skeleton + ML classifier | Needs 3D-camera hardware; one-directional |
-| Signapse [16] | Spoken → Sign | BSL, ASL | Proprietary signer video | Deep generative (GAN) video | One-directional; domain-limited |
+| SignAll [20] | Sign → Spoken | ASL | Proprietary ASL corpus | Multi-camera CV + marker gloves + rule-based NLP | Needs camera rig + gloves; not portable |
+| Hand Talk [18] | Spoken → Sign | ASL, Libras | Curated animation dictionary | Text→gloss + 3D avatar | One-directional; fixed vocabulary |
+| SLAIT [22] | Sign → Spoken | ASL | Self-collected (small) | Webcam landmarks + deep sequence model | Limited vocabulary; one-directional |
+| KinTrans [21] | Sign → Spoken | ASL, ArSL | Proprietary multi-signer corpus | 3D-camera skeleton + ML classifier | Needs 3D-camera hardware; one-directional |
+| Signapse [19] | Spoken → Sign | BSL, ASL | Proprietary signer video | Deep generative (GAN) video | One-directional; domain-limited |
 | **Together (this work)** | **Bidirectional** | **ASL, ArSL** | **Public landmark datasets (detailed in Ch. 3)** | **Landmarks + isolated models + LLM gloss→sentence + semantic sign synthesis** | **Isolated (not continuous) signing** |
 
 Three differences set *Together* apart, each addressing a gap left by the systems
@@ -183,7 +192,7 @@ Language is held back by small, low-signer datasets [12], [13], [14]; and the
 deep-learning pipeline stops at gloss, leaving the grammar gap to a separate stage
 [6], [7]. The deployed products that build on these foundations are, as Table 2.2
 shows, uniformly single-direction, narrow in language, and frequently hardware- or
-data-bound [15]–[19].
+data-bound [18]–[22].
 
 The gap is therefore clear and unfilled: **no available system is at once
 bidirectional, bilingual across a high- and a low-resource sign language, and
