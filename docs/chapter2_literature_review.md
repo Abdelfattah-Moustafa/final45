@@ -109,9 +109,58 @@ between the rich tooling available for ASL and the sparse resources for ArSL is
 precisely the gap that motivates treating ArSL as a first-class language in this
 project.
 
-## 2.5 Summary and Research Gap
+## 2.5 Existing Systems and Commercial Solutions
 
-The reviewed literature supports four conclusions. First, sign languages are
+Beyond academic prototypes, several commercial products and deployed applications
+attempt to bridge signed and spoken communication. They fall into two broad
+groups that mirror the two translation directions, and each adopts a distinct
+architecture.
+
+The first group translates **spoken language into sign** through an animated
+avatar or synthesised video. Hand Talk is a widely used mobile application and
+website plug-in that renders text and speech as a three-dimensional signing
+avatar for American Sign Language and Brazilian Sign Language (Libras) [15].
+Signapse follows a similar direction but generates photorealistic, AI-synthesised
+sign-language video for fixed announcements and websites, primarily in British and
+American Sign Language [16]. Both are essentially one-directional: they produce
+sign output but do not interpret a user's own signing.
+
+The second group translates **sign into spoken language**. SignAll uses a
+multi-camera rig, historically combined with colour-marked gloves, to convert ASL
+into English text at kiosks and desktop stations [17]. KinTrans applies
+three-dimensional cameras and machine learning to convert signing into text and
+speech, and is notable for supporting Arabic Sign Language alongside ASL, although
+it is delivered as fixed enterprise hardware [18]. SLAIT demonstrated real-time,
+webcam-based ASL-to-text recognition running directly in a browser, showing the
+feasibility of hardware-free deployment, albeit again in a single direction [19].
+
+Table 2.1 compares these systems across the dimensions most relevant to this
+project: translation direction, supported languages, core technology, deployment
+model, and real-time operation, with *Together* included for reference.
+
+**Table 2.1 — Comparison of existing sign-language systems with *Together*.**
+
+| System | Direction | Languages | Core technology / architecture | Deployment | Real-time |
+| --- | --- | --- | --- | --- | --- |
+| Hand Talk [15] | Spoken → Sign | ASL, Libras | 3D signing avatar | Mobile app, web plug-in | Yes |
+| Signapse [16] | Spoken → Sign | BSL, ASL | AI-synthesised photorealistic sign video | Web / digital signage | Pre-rendered |
+| SignAll [17] | Sign → Spoken (text) | ASL | Multi-camera vision (+ marker gloves) | Kiosk / desktop | Yes |
+| KinTrans [18] | Sign → Spoken (text + voice) | ASL, ArSL | 3D camera + machine learning | Kiosk / enterprise hardware | Yes |
+| SLAIT [19] | Sign → Spoken (text) | ASL | Webcam + deep learning | Browser | Yes |
+| **Together (this work)** | **Bidirectional** | **ASL, ArSL** | **Landmarks + isolated models + LLM gloss→sentence + semantic sign synthesis** | **Browser (no install)** | **Yes** |
+
+Across the surveyed products, three patterns are clear. Each system commits to a
+single translation direction; coverage is concentrated on a few high-resource
+languages, with Arabic supported by only one of them; and the systems offering the
+richest functionality rely on dedicated hardware or controlled installations
+rather than an ordinary browser. No single product combines bidirectional
+translation, support for both a high- and a low-resource sign language, and
+zero-install browser deployment.
+
+## 2.6 Summary and Research Gap
+
+The reviewed literature and existing systems support five conclusions. First,
+sign languages are
 grammatically distinct from spoken languages, so translation requires more than
 recognition; the gloss produced by a recogniser must be restructured into fluent
 text [6], [7]. Second, vision- and landmark-based recognition has matured to the
@@ -121,6 +170,9 @@ well-validated design, but the strongest end-to-end models depend on large
 parallel corpora that exist only for a few high-resource languages [8], [9].
 Fourth, Arabic Sign Language remains under-resourced, with most work confined to
 isolated or alphabet-level recognition rather than translation [12], [13], [14].
+Fifth, as Table 2.1 shows, deployed commercial systems are uniformly
+single-direction, narrow in language coverage, and frequently hardware-bound
+[15]–[19].
 
 From these observations, a clear gap emerges. There is, at present, no widely
 available system that is simultaneously *bidirectional*, *bilingual* across a
