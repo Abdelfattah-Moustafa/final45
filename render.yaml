@@ -1,0 +1,41 @@
+services:
+  - type: web
+    name: together-app
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: starter          # $7/mo · 512 MB RAM · upgrade to standard ($25) if RAM OOM
+    healthCheckPath: /api/health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: PORT
+        value: "8000"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: together-db
+          property: connectionString
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: ALLOWED_ORIGINS
+        sync: false          # set manually after you know the public URL
+      - key: GEMINI_API_KEY
+        sync: false          # set manually — never commit this
+      - key: LLM_PROVIDER
+        value: gemini
+      - key: TTS_PROVIDER
+        value: gemini
+      - key: STT_PROVIDER
+        value: gemini
+      - key: LLM_FALLBACK
+        value: "0"
+      - key: TTS_FALLBACK
+        value: "0"
+      - key: STT_FALLBACK
+        value: "0"
+
+databases:
+  - name: together-db
+    plan: starter          # free tier (90-day limit) — upgrade to $7/mo for persistence
+    databaseName: together
+    user: together
+    postgresMajorVersion: 16
