@@ -116,8 +116,9 @@ save(fig, "fig3_4_text2sign.png")
 # ---------------------------------------------------------- Fig 3.5 Model architectures
 fig, ax = plt.subplots(figsize=(9.5, 6)); ax.set_xlim(0, 12); ax.set_ylim(0, 9); ax.axis("off")
 ax.text(3.0, 8.4, "(a) ASL — landmark-sequence model (TFLite)", ha="center", fontsize=9.5, weight="bold", color=TXT)
-asl = ["Input: T × 543 × 3\nlandmarks", "Normalise &\nselect keypoints",
-       "Embedding +\n1D-Conv / Transformer", "Global pooling", "Dense → 250\nsoftmax"]
+asl = ["Input: ~130 selected\nlandmarks × T", "Normalise +\naugment (CutMix…)",
+       "1D-Conv + Transformer\nencoder (Squeezeformer)", "Global pooling",
+       "Dense → 250\nsoftmax → TFLite"]
 y = 7.2
 for t in asl:
     box(ax, 1.4, y, 3.2, 0.85, t, C_ML, 8.5)

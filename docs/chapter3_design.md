@@ -126,19 +126,24 @@ through text-to-speech.
 
 The two recognition models are designed around the landmark representation rather
 than raw pixels, as motivated in Chapter 2. Their architectures are shown in
-Fig. 3.5. The ASL model consumes the 543-point landmark sequence, normalises and
-selects the most informative keypoints, encodes them with a sequence model, and
-classifies into 250 signs; it is exported to TFLite for efficient server-side
-inference. The ArSL model is a CNN-GRU: a convolutional feature extractor followed
-by a gated recurrent unit that captures temporal dynamics, ending in a 20-way
-classifier.
+Fig. 3.5. The ASL model follows the design of the top-performing solution to the
+Google ISLR competition. From the 543 MediaPipe landmarks it selects roughly 130
+informative points — the lips, eyes, and nose together with both hands and
+upper-body pose — normalises them, and applies sign-specific augmentations such as
+CutMix, finger dropout, and time stretching during training. The selected landmark
+sequence is encoded by a hybrid **1D-convolution + Transformer (Squeezeformer-style)
+encoder** that captures both local temporal patterns and long-range dependencies,
+followed by global pooling and a 250-way softmax classifier. The model is trained in
+PyTorch and exported to TFLite for efficient server-side inference. The ArSL model
+is a **CNN-GRU**: a convolutional feature extractor followed by a gated recurrent
+unit that captures temporal dynamics, ending in a 20-way classifier.
 
 ![Figure 3.5](figures/fig3_5_models.png)
 
 **Figure 3.5 — Recognition model architectures.**
 
-> Note: the exact layer configurations (depths, hidden sizes, input window length)
-> are reported in Chapter 4 from the trained models.
+> Note: the exact layer configurations (encoder depth, hidden sizes, input window
+> length) are reported in Chapter 4 from the trained models.
 
 ## 3.6 Gloss-to-Sentence Translation
 
