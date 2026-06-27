@@ -46,6 +46,9 @@ arrow(ax, 3.0, 2.9, 3.0, 2.35)
 ax.text(3.0, 2.0, "Categorical Cross-Entropy Loss", ha="center", fontsize=10.5,
         weight="bold", color=TXT)
 ax.set_title("Figure — ASL model: input → output", fontsize=11, weight="bold", color=TXT, pad=8)
+ax.text(3.0, 0.5, "training feature shapes; deployed TFLite takes raw (60, 543, 3)\n"
+        "landmarks and preprocesses inside the graph",
+        ha="center", fontsize=7.5, color="#64748b")
 save(fig, "fig_asl_flow.png")
 
 # ---------------------------------------------------- (B) Conv1DBlock detail

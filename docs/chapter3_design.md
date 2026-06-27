@@ -133,20 +133,25 @@ text-to-speech.
 The two recognition models are designed around the landmark representation rather
 than raw pixels, as motivated in Chapter 2. Their architectures are shown in
 Fig. 3.5. The ASL model adapts the Squeezeformer design of the top-performing solution to the
-Google ISLR competition and embeds its own preprocessing. From the 543 MediaPipe
-landmarks per frame it keeps **236** informative points (lips, both hands, and upper
-body) and discards the dense facial mesh; it then **drops the z axis and uses only
-the (x, y) coordinates**, centres them on the nose landmark, and normalises by the
-sequence standard deviation. Two temporal differences (first- and second-order, dx
-and dx²) are concatenated with the coordinates, giving **1,416 features per frame**
-over a fixed **60-frame** window. A stem convolution projects these to a
-192-dimensional representation, which is processed by a stack of Conv1D blocks —
-each combining a point-wise convolution, a **causal depthwise convolution** (kernel
-size 17) that prevents future frames from leaking into past ones, and Efficient
-Channel Attention (ECA) with a residual connection — interleaved with multi-head
-self-attention and a transformer block. Global average pooling and a 250-way softmax
-produce the prediction, and the model is exported to TFLite for server-side
-inference.
+Google ISLR competition, with its preprocessing **embedded inside the TFLite graph**.
+The deployed model therefore accepts the raw MediaPipe landmarks directly — an input
+of shape **(60, 543, 3)**, i.e. 60 frames of 543 points with (x, y, z) — and the
+browser only resizes the frame dimension to 60. Inside the graph the preprocessing
+selects **118 informative landmarks** (lips, both hands, and upper body), **drops the
+z axis** to keep only (x, y), centres the coordinates on the nose landmark, and
+normalises by the sequence standard deviation. First- and second-order motion
+features (dx, dy and dx², dy²) are concatenated with the coordinates, giving **708
+features per frame** (118 × 6). During training, sequences are padded to a maximum
+length of 384 frames, so the feature tensor processed by the network core has shape
+**(384, 708)**. A stem convolution projects these features to a 192-dimensional
+representation, which is processed by **two repetitions of three Conv1D blocks
+followed by a transformer block**. Each Conv1D block combines a point-wise
+convolution, a **causal depthwise convolution** (kernel size 17) that prevents future
+frames from leaking into past ones, and Efficient Channel Attention (ECA) with a
+residual connection. Global average pooling and a 250-way softmax produce the
+prediction under a categorical cross-entropy loss. The model is exported to TFLite;
+because the preprocessing lives in the graph, the client only sends raw landmarks and
+the server's interpreter performs the rest.
 
 The ArSL model is a compact **CNN-GRU** that operates on a 177-dimensional skeletal
 feature vector per frame. Two one-dimensional convolutional blocks (177→128 then

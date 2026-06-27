@@ -118,8 +118,8 @@ save(fig, "fig3_4_text2sign.png")
 # ---------------------------------------------------------- Fig 3.5 Model architectures
 fig, ax = plt.subplots(figsize=(9.5, 6)); ax.set_xlim(0, 12); ax.set_ylim(0, 9); ax.axis("off")
 ax.text(3.0, 8.4, "(a) ASL — preprocessing + Squeezeformer (TFLite)", ha="center", fontsize=9, weight="bold", color=TXT)
-asl = ["Select 236 pts (of 543)\ndrop Z → use (X, Y)", "Nose-center (#17)\n+ std normalise",
-       "Temporal diffs [x, dx, dx²]\n→ 1416 / frame", "Stem Conv → 192",
+asl = ["Raw 60×543×3 → select\n118 landmarks, drop Z (X,Y)", "Nose-center (#17)\n+ std normalise",
+       "Motion (dx, dy, dx², dy²)\n→ 708 feats / frame", "Stem Conv → 192",
        "Conv1D blocks (causal DW\nk=17 + ECA) + transformer", "GAP → Dense 250\nsoftmax → TFLite"]
 y = 7.2
 for t in asl:
