@@ -126,14 +126,15 @@ for t in asl:
         arrow(ax, 3.0, y, 3.0, y - 0.45)
     y -= 1.3
 ax.text(9.0, 8.4, "(b) ArSL — CNN-GRU model", ha="center", fontsize=9.5, weight="bold", color=TXT)
-ar = ["Input: T × features\n(landmarks)", "CNN feature\nextractor", "GRU (temporal)",
-      "Dense → 20\nsoftmax"]
+ar = ["Input: N × 177\nskeletal sequence", "Conv1D 177→128\n(k=3) + BN + ReLU",
+      "Conv1D 128→128\n(k=3) + BN + ReLU", "Bi-GRU 128→64\n2 layers, dropout 0.3",
+      "FC 128→64\nReLU + Dropout 0.5", "FC 64→20\nsoftmax"]
 y = 7.2
 for t in ar:
-    box(ax, 7.4, y, 3.2, 0.85, t, C_LLM, 8.5)
+    box(ax, 7.4, y, 3.2, 0.8, t, C_LLM, 8)
     if t != ar[-1]:
-        arrow(ax, 9.0, y, 9.0, y - 0.45)
-    y -= 1.3
+        arrow(ax, 9.0, y, 9.0, y - 0.5)
+    y -= 1.2
 title(ax, "Figure 3.5  —  Recognition model architectures")
 save(fig, "fig3_5_models.png")
 

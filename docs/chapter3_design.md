@@ -134,16 +134,22 @@ CutMix, finger dropout, and time stretching during training. The selected landma
 sequence is encoded by a hybrid **1D-convolution + Transformer (Squeezeformer-style)
 encoder** that captures both local temporal patterns and long-range dependencies,
 followed by global pooling and a 250-way softmax classifier. The model is trained in
-PyTorch and exported to TFLite for efficient server-side inference. The ArSL model
-is a **CNN-GRU**: a convolutional feature extractor followed by a gated recurrent
-unit that captures temporal dynamics, ending in a 20-way classifier.
+PyTorch and exported to TFLite for efficient server-side inference.
+
+The ArSL model is a compact **CNN-GRU** that operates on a 177-dimensional skeletal
+feature vector per frame. Two one-dimensional convolutional blocks (177→128 then
+128→128, kernel size 3, each followed by batch normalisation and ReLU) extract local
+spatio-temporal features; a two-layer **bidirectional GRU** (128→64 hidden units,
+dropout 0.3) models the temporal dynamics, producing a 128-dimensional
+representation; and two fully connected layers (128→64 with ReLU and dropout 0.5,
+then 64→20) with a softmax yield the 20-class prediction.
 
 ![Figure 3.5](figures/fig3_5_models.png)
 
 **Figure 3.5 — Recognition model architectures.**
 
-> Note: the exact layer configurations (encoder depth, hidden sizes, input window
-> length) are reported in Chapter 4 from the trained models.
+> Note: training hyperparameters (optimiser, learning rate, epochs, and input
+> window length) are reported in Chapter 4.
 
 ## 3.6 Gloss-to-Sentence Translation
 
