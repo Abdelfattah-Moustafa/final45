@@ -28,24 +28,28 @@ Four families of evidence are used.
 - **Functional correctness** is assessed by an automated test suite, a frontend
   regression module, and manual end-to-end testing of every site module.
 
-For reference, precision is the fraction of a class's predictions that are correct
-(TP / (TP + FP)), recall is the fraction of a class's true instances that are
-recovered (TP / (TP + FN)), F1 is their harmonic mean, and a confusion matrix
-cross-tabulates true against predicted labels so that systematic mistakes become
-visible:
+All metrics used in this chapter are defined in Table 5.1.
 
-$$
-\text{Accuracy} = \frac{\text{correct}}{\text{total}}, \quad
-P = \frac{TP}{TP + FP}, \quad
-R = \frac{TP}{TP + FN}, \quad
-F_1 = \frac{2PR}{P + R}. \tag{5.1}
-$$
+**Table 5.1 — Evaluation metrics used in this chapter.**
+
+| Metric | Description | Expression |
+| --- | --- | --- |
+| Accuracy (ACC) | Correct predictions over the total number of predictions. | $\dfrac{TP+TN}{TP+TN+FP+FN}$ |
+| Top-1 accuracy | Share of cases where the highest-confidence prediction matches the true label. | $\dfrac{\text{correct (top-1)}}{\text{total samples}}$ |
+| Top-5 accuracy | Share of cases where the true label is among the model's top five predictions. | $\dfrac{\text{true label in top 5}}{\text{total samples}}$ |
+| Precision (P) | Correct positives over all predicted positives. | $\dfrac{TP}{TP+FP}$ |
+| Recall (R) | Correct positives over all actual positives. | $\dfrac{TP}{TP+FN}$ |
+| F1 score | Harmonic mean of precision and recall; range $[0,1]$. | $\dfrac{2TP}{2TP+FP+FN}$ |
+| Confusion matrix | Cross-tabulates true vs. predicted classes; entry $C_{ij}$ counts true class $i$ predicted as $j$. | $C_{ij}=\#\{\text{true}=i,\ \text{pred}=j\}$ |
+| Categorical cross-entropy (loss) | Multi-class training loss, here with label smoothing ($\varepsilon=0.1$). | $-\sum_{i=1}^{C}\tilde{y}_i\log p_i$ |
+| BLEU | Translation: word n-gram precision with a brevity penalty (BP). | $\mathrm{BP}\cdot\exp\!\big(\textstyle\sum_{n=1}^{N} w_n\ln p_n\big)$ |
+| chrF | Translation: character n-gram F-score (recall weighted by $\beta$). | $(1+\beta^{2})\dfrac{\mathrm{chrP}\cdot\mathrm{chrR}}{\beta^{2}\mathrm{chrP}+\mathrm{chrR}}$ |
 
 ## 5.2 Recognition Results
 
 ### 5.2.1 Accuracy and generalization
 
-The accuracy results are summarised in Table 5.1 and Fig. 5.4. On its own test
+The accuracy results are summarised in Table 5.2 and Fig. 5.4. On its own test
 distribution, the **ASL model reaches 80%** accuracy over the 250-class vocabulary.
 To probe generalization, the same model was evaluated **cross-dataset** on the
 independent **WLASL** benchmark, where it attains **62.4% Top-1** — a substantial but
@@ -62,7 +66,7 @@ gap quantifies how much of the in-distribution score depends on signer-specific
 cues, and an 88% signer-independent result remains a strong outcome for a 20-class
 recogniser on phone-camera video.
 
-**Table 5.1 — Recognition accuracy.**
+**Table 5.2 — Recognition accuracy.**
 
 | Model | Vocabulary | Evaluation | Accuracy |
 | --- | --- | --- | --- |
@@ -78,9 +82,9 @@ recogniser on phone-camera video.
 ### 5.2.2 Precision, recall and F1
 
 Accuracy alone can hide class imbalance, so per-class precision, recall, and F1 were
-computed for both models, and the macro-averaged values are reported in Table 5.2.
+computed for both models, and the macro-averaged values are reported in Table 5.3.
 
-**Table 5.2 — Macro-averaged recognition metrics.**
+**Table 5.3 — Macro-averaged recognition metrics.**
 
 | Model | Macro precision | Macro recall | Macro F1 |
 | --- | --- | --- | --- |
@@ -122,29 +126,16 @@ BLEU-1 (vocabulary) to BLEU-4 (fluency). **chrF** [35] measures character n-gram
 overlap and is more reliable for the morphologically rich Arabic output, where a
 correct-but-inflected word is unfairly penalised by word-level BLEU. Both are
 computed with a standardised scorer [36] against human references. BLEU combines the
-modified n-gram precisions $p_n$ with a brevity penalty (BP), and chrF is the
-character-level F-score with recall weighted by $\beta$:
-
-$$
-\mathrm{BLEU} = \mathrm{BP}\cdot\exp\!\left(\sum_{n=1}^{N} w_n \ln p_n\right), \qquad
-\mathrm{BP} = \begin{cases} 1 & c > r \\ e^{\,1 - r/c} & c \le r \end{cases} \tag{5.2}
-$$
-
-$$
-\mathrm{chrF}_{\beta} = (1+\beta^{2})\,
-\frac{\mathrm{chrP}\cdot\mathrm{chrR}}{\beta^{2}\,\mathrm{chrP} + \mathrm{chrR}}, \tag{5.3}
-$$
-
-where $c$ and $r$ are the candidate and reference lengths, and chrP, chrR are the
-character n-gram precision and recall.
+modified n-gram precisions with a brevity penalty, and chrF is the character-level
+F-score; both are defined in Table 5.1.
 
 ### 5.3.2 Results
 
-Table 5.3 reports the scores for both languages, with and without the language
+Table 5.4 reports the scores for both languages, with and without the language
 model; Figs. 5.1–5.3 visualise them. In every case the language model produces a
 large, consistent improvement over the raw-gloss baseline.
 
-**Table 5.3 — Translation quality (gloss → sentence).**
+**Table 5.4 — Translation quality (gloss → sentence).**
 
 | Language | System | BLEU-1 | BLEU-2 | BLEU-3 | BLEU-4 | chrF |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -193,10 +184,10 @@ for Arabic and is the fairer measure there.
 The system is designed for interactive use (NFR1): landmark frames are streamed at
 roughly 20 fps, inference runs off the event loop in a worker thread, and a sign is
 typically accepted within a few hundred milliseconds of being completed. Per-stage
-latency is instrumented and exposed at the `/api/metrics` endpoint. Table 5.4
+latency is instrumented and exposed at the `/api/metrics` endpoint. Table 5.5
 records the measured timings.
 
-**Table 5.4 — End-to-end latency (per stage).**
+**Table 5.5 — End-to-end latency (per stage).**
 
 | Stage | Median (ms) | 95th percentile (ms) |
 | --- | --- | --- |
@@ -240,9 +231,9 @@ package imports and that the core services instantiate. These run under a
 continuous-integration workflow so regressions are caught on every change.
 
 In addition, each user-facing module was **manually tested** end to end, as
-summarised in Table 5.5.
+summarised in Table 5.6.
 
-**Table 5.5 — Functional test coverage.**
+**Table 5.6 — Functional test coverage.**
 
 | Component | Test type | Verified |
 | --- | --- | --- |
