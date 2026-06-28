@@ -47,6 +47,73 @@ lenses through which the following systems are assessed.
 
 **Figure 2.1 — Comparison of different datasets.**
 
+### 2.1.1 Deep-Learning Sequence Architectures: From CNNs to Transformers
+
+A sign is not a single pose but a *trajectory through time*, so the recogniser must
+model both spatial structure (the configuration of the hands and body in a frame)
+and temporal structure (how that configuration evolves). Four families of
+deep-learning architecture have been applied to this problem, each improving on the
+last in how it handles temporal dependencies.
+
+**Convolutional Neural Networks (CNNs).** A CNN applies learnable filters that slide
+across the input, sharing weights so that the same local pattern is detected
+anywhere. This makes CNNs extremely efficient at capturing *local* structure —
+edges in an image, or short motion patterns in a one-dimensional (1-D) sequence of
+landmarks. Their weakness for sign language is range: a single convolution sees only
+its kernel-sized window, so capturing a dependency spanning the whole sign requires
+stacking many layers or using dilation, and a plain CNN has no explicit notion of
+sequence order beyond what the filters encode.
+
+**Recurrent Neural Networks (RNNs).** An RNN processes a sequence step by step,
+carrying a hidden state $h_t = f(h_{t-1}, x_t)$ that summarises everything seen so
+far, which makes it a natural fit for temporal data. In practice, however, vanilla
+RNNs suffer from vanishing and exploding gradients, so they struggle to learn
+long-range dependencies, and because each step depends on the previous one they
+cannot be parallelised across time, making them slow to train.
+
+**LSTM and BiLSTM/BiGRU.** Long Short-Term Memory networks add a gated memory cell —
+input, forget, and output gates — that lets information flow across many steps
+without vanishing, capturing far longer dependencies than a plain RNN. The Gated
+Recurrent Unit (GRU) is a lighter variant with only update and reset gates and fewer
+parameters, which is advantageous on small datasets. Bidirectional variants
+(BiLSTM, BiGRU) run two recurrences — one forward, one backward — and concatenate
+their states, so each time step is informed by both past and future context, at
+roughly twice the compute. These models remain, however, fundamentally *sequential*.
+
+**Transformers.** The Transformer replaces recurrence entirely with *self-attention*.
+For every position, attention compares a query against the keys of all other
+positions and forms a weighted sum of their values (Eq. 4.5), so any two time steps
+are connected by a single computation regardless of how far apart they are — the
+path length for a long-range dependency is $O(1)$ rather than $O(n)$. Several
+attention "heads" (Eq. 4.6) learn different relations in parallel, a position-wise
+feed-forward network (Eq. 4.7) adds non-linear capacity, and because there is no
+recurrence a positional encoding is added so the model knows the order of frames.
+Crucially, all positions are processed *simultaneously*, so Transformers parallelise
+well and scale to large data. Their costs are a quadratic $O(n^2)$ attention
+computation and a weaker built-in sense of locality, which is why modern speech and
+gesture models — including the Squeezeformer used here — interleave convolution
+(for local detail) with attention (for global context). Table 2.2 summarises the
+trade-offs.
+
+**Table 2.2 — Comparison of deep-learning sequence architectures.**
+
+| Architecture | Temporal mechanism | Long-range dependencies | Parallel over time | Key weakness |
+| --- | --- | --- | --- | --- |
+| CNN (1-D) | Local sliding filters | Limited (needs depth/dilation) | Yes | Fixed receptive field |
+| RNN | Recurrent hidden state | Poor (vanishing gradients) | No | Slow; forgets long context |
+| LSTM / GRU | Gated memory | Good | No | Sequential; still bounded |
+| BiLSTM / BiGRU | Gated memory, both directions | Good (past + future) | No | ~2× compute; sequential |
+| Transformer | Self-attention | Excellent ($O(1)$ path) | Yes | $O(n^2)$ cost; weak locality |
+
+These trade-offs explain the two model choices in this project. The ASL recogniser,
+trained on a large 250-class corpus, adopts a **Squeezeformer** that combines 1-D
+convolution (local motion) with Transformer attention (global context), exploiting
+both the abundance of data and the parallelism of attention. The ArSL recogniser,
+trained on a much smaller 20-class dataset, instead uses a compact **CNN + BiGRU**:
+the bidirectional recurrence captures temporal context in both directions while the
+far smaller parameter count avoids the over-fitting that a data-hungry Transformer
+would risk on limited Arabic data.
+
 ## 2.2 Existing Applications and Systems
 
 ### 2.2.1 SignAll

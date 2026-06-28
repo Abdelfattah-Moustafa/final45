@@ -44,14 +44,15 @@ Formally, each coordinate is normalised relative to the nose landmark $X_{17}$ a
 the per-sequence standard deviation,
 
 $$
-\hat{X} = \frac{X - \mu}{\sigma}, \qquad \mu = X_{17}, \qquad
-\sigma = \sqrt{\frac{1}{N}\sum_{i=1}^{N}\left(X_i - \mu\right)^2}, \tag{4.1}
+X_{\text{norm}} = \frac{X - X_{17}}{\sigma}, \qquad
+\sigma = \sqrt{\frac{\sum (X - X_{17})^2}{N}}, \tag{4.1}
 $$
 
-and first- and second-order motion features are appended,
+and first- and second-order motion features (derivatives) are appended,
 
 $$
-\Delta^{1}X_t = X_{t-1} - X_t, \qquad \Delta^{2}X_t = X_{t-2} - X_t, \tag{4.2}
+\text{Motion}_{\text{lag}=1} = X_t - X_{t-1}, \qquad
+\text{Motion}_{\text{lag}=2} = X_t - X_{t-2}, \tag{4.2}
 $$
 
 so each frame is the concatenation $[\hat{X},\,\Delta^{1}X,\,\Delta^{2}X]$, giving
@@ -93,11 +94,15 @@ and scales the features by the resulting sigmoid weights.
 
 **Figure 4.5 — Efficient Channel Attention (ECA).**
 
-Writing the per-channel global average pool as $z_c = \frac{1}{L}\sum_{t} x_{c,t}$,
-the channel weights and recalibrated output are
+Using global average pooling $\mathrm{GAP}$, the channel weights $\omega$, the
+recalibrated output, and the adaptive kernel size $k$ (which grows with the channel
+count $C$) are
 
 $$
-s = \sigma\!\left(\mathrm{Conv1D}_k(z)\right), \qquad X' = s \odot X, \tag{4.4}
+\omega = \sigma\!\left(\mathrm{C1D}_k(\mathrm{GAP}(\mathbf{X}))\right), \quad
+\mathbf{X}' = \omega \odot \mathbf{X}, \quad
+k = \left|\frac{\log_2 C}{\gamma} + \frac{b}{\gamma}\right|_{\text{odd}}
+\;(\gamma{=}2,\ b{=}1), \tag{4.4}
 $$
 
 where $\sigma$ is the sigmoid and $\odot$ denotes channel-wise scaling.
@@ -167,8 +172,8 @@ $$
 and is trained with a label-smoothed categorical cross-entropy loss,
 
 $$
-\mathcal{L} = -\sum_{i=1}^{C} \tilde{y}_i \log p_i, \qquad
-\tilde{y}_i = (1-\varepsilon)\,y_i + \frac{\varepsilon}{C}, \quad \varepsilon = 0.1, \tag{4.9}
+\mathcal{L}_{\text{smoothed}} = -(1-\alpha)\log(\hat{y}_{\text{correct}})
+- \frac{\alpha}{C}\sum_{i=1}^{C}\log(\hat{y}_i), \qquad \alpha = 0.1, \tag{4.9}
 $$
 
 under a cosine-decayed learning rate,
@@ -179,7 +184,7 @@ $$
 
 The resulting training curves are shown in Fig. 4.10. On its own test split the model
 attains **80%** accuracy, and it generalises to **62.4% Top-1** when evaluated
-cross-dataset on the independent WLASL benchmark (Chapter 5). Validation accuracy
+cross-dataset on the independent SignASL benchmark (Chapter 5). Validation accuracy
 exceeding training accuracy is expected here, because the heavy augmentation and
 regularization are active only during training.
 
@@ -206,7 +211,9 @@ With left and right shoulder landmarks $s_L$ and $s_R$, the coordinates are made
 position- and scale-invariant by
 
 $$
-\hat{X} = \frac{X - \tfrac{1}{2}\left(s_L + s_R\right)}{\lVert s_L - s_R \rVert}. \tag{4.11}
+\mathbf{p}_{\text{mid}} = \frac{\mathbf{p}_{L\_shoulder} + \mathbf{p}_{R\_shoulder}}{2}, \qquad
+\mathbf{p}_{\text{norm}} = \frac{\mathbf{p} - \mathbf{p}_{\text{mid}}}
+{\lVert \mathbf{p}_{L\_shoulder} - \mathbf{p}_{R\_shoulder} \rVert_2}. \tag{4.11}
 $$
 
 ### 4.3.2 Architecture

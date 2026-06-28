@@ -16,7 +16,7 @@ Four families of evidence are used.
   **precision, recall, and F1**, and by **confusion matrices**. To test
   generalization rather than only memorisation, each model is additionally
   evaluated on data drawn from outside its training distribution: the ASL model is
-  tested **cross-dataset** on the independent WLASL benchmark, and the ArSL model is
+  tested **cross-dataset** on the independent SignASL benchmark, and the ArSL model is
   tested **signer-independently** (held-out signers).
 - **Translation quality** — the contribution of the language-model stage — is
   measured against human reference sentences with the **BLEU** [34] and **chrF**
@@ -52,8 +52,8 @@ All metrics used in this chapter are defined in Table 5.1.
 The accuracy results are summarised in Table 5.2 and Fig. 5.4. On its own test
 distribution, the **ASL model reaches 80%** accuracy over the 250-class vocabulary.
 To probe generalization, the same model was evaluated **cross-dataset** on the
-independent **WLASL** benchmark, where it attains **62.4% Top-1** — a substantial but
-expected drop, since WLASL is a separate corpus with different signers, recording
+independent **SignASL** benchmark, where it attains **62.4% Top-1** — a substantial but
+expected drop, since SignASL is a separate corpus with different signers, recording
 conditions, and label statistics. That the model still recognises the majority of
 signs on an unseen corpus is strong evidence that it has learned genuine sign
 representations rather than dataset-specific artefacts.
@@ -71,7 +71,7 @@ recogniser on phone-camera video.
 | Model | Vocabulary | Evaluation | Accuracy |
 | --- | --- | --- | --- |
 | ASL (Squeezeformer, TFLite) | 250 | In-distribution (GISLR test) | 80% |
-| ASL | 250 | Cross-dataset generalization (WLASL, Top-1) | 62.4% |
+| ASL | 250 | Cross-dataset generalization (SignASL, Top-1) | 62.4% |
 | ArSL (CNN-GRU, PyTorch) | 20 | In-distribution (80/10/10) | 99.41% |
 | ArSL | 20 | Signer-independent | 88% |
 

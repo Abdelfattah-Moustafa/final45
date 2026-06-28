@@ -25,7 +25,7 @@ a deployable container.
 
 The evaluation supports the central design decision. The ASL model reached **80%**
 accuracy on its own test set and generalised to **62.4% Top-1** cross-dataset on the
-independent WLASL benchmark, while the ArSL model reached **99.41%** in-distribution
+independent SignASL benchmark, while the ArSL model reached **99.41%** in-distribution
 and **88%** under a signer-independent protocol; and — most importantly for the
 gloss-mediated approach — the language-model stage
 improved translation quality substantially and consistently in both languages
@@ -54,7 +54,7 @@ The principal contributions of this work are:
 ## 6.3 Limitations
 
 The results must be read with four limitations in mind. First, although both models
-were tested for generalization — the ASL model cross-dataset on WLASL and the ArSL
+were tested for generalization — the ASL model cross-dataset on SignASL and the ArSL
 model signer-independently (88%) — the **ASL in-distribution split is random rather
 than signer-independent**, so an explicit signer-independent ASL evaluation would
 further strengthen the claim. Second, the **ASL model is trained on a subset** of the
