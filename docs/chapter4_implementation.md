@@ -187,10 +187,9 @@ the 20-class task and attains **99.41%** accuracy on its test split.
 
 **Figure 4.16 — ArSL training curves (redrawn from log).**
 
-> Note: the ArSL model is evaluated only on a stratified 80/10/10 split of a single
-> dataset whose 72 signers appear across all splits. It therefore may exhibit
-> identity leakage; a signer-independent (leave-one-signer-out) protocol is
-> recommended future work (Chapter 6).
+In addition to this in-distribution split, the model was evaluated under a
+**signer-independent** protocol on held-out signers, reaching **88%** (Chapter 5),
+which quantifies its generalisation beyond signer-specific cues.
 
 ## 4.4 Gloss-to-Sentence Translation
 

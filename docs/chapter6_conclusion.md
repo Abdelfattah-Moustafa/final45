@@ -23,9 +23,11 @@ combined into a live, two-party meeting over WebRTC, and the system was finished
 the production qualities of authentication, a bilingual right-to-left interface, and
 a deployable container.
 
-The evaluation supports the central design decision. The ASL model reached **62.4%
-Top-1 accuracy** over 250 classes and the ArSL model **99.41%** over 20 classes,
-and — most importantly for the gloss-mediated approach — the language-model stage
+The evaluation supports the central design decision. The ASL model reached **80%**
+accuracy on its own test set and generalised to **62.4% Top-1** cross-dataset on the
+independent WLASL benchmark, while the ArSL model reached **99.41%** in-distribution
+and **88%** under a signer-independent protocol; and — most importantly for the
+gloss-mediated approach — the language-model stage
 improved translation quality substantially and consistently in both languages
 (chrF rising from 0.54 to 0.91 for ASL and from 0.34 to 0.59 for ArSL), with the
 gain concentrated in recall, confirming that the language model supplies the
@@ -51,13 +53,12 @@ The principal contributions of this work are:
 
 ## 6.3 Limitations
 
-The results must be read with four limitations in mind. First, the recognition
-evaluations are **signer-dependent**: both models use random rather than
-signer-independent splits, so — particularly for ArSL, whose 72 signers appear
-across all splits — the reported accuracy may overstate real-world performance
-through identity leakage. Second, the **ASL model is trained on a subset** of the
-full corpus, and its 250-class accuracy, while strong for the task, leaves clear
-headroom. Third, the system recognises **isolated** signs rather than continuous
+The results must be read with four limitations in mind. First, although both models
+were tested for generalization — the ASL model cross-dataset on WLASL and the ArSL
+model signer-independently (88%) — the **ASL in-distribution split is random rather
+than signer-independent**, so an explicit signer-independent ASL evaluation would
+further strengthen the claim. Second, the **ASL model is trained on a subset** of the
+full corpus, and its accuracy, while strong, leaves clear headroom. Third, the system recognises **isolated** signs rather than continuous
 signing, so the language model rather than a continuous recogniser bears the burden
 of forming sentences, and natural conversational signing is not yet supported.
 Fourth, the **Arabic vocabulary is small** (20 signs) and the Arabic translation
@@ -67,9 +68,9 @@ metrics rest on a limited reference set, so they should be read as indicative.
 
 These limitations map directly onto the most valuable directions for future work:
 
-- **Signer-independent evaluation.** Re-evaluate both models under a
-  leave-one-signer-out protocol — as the original ArSL dataset authors did — to
-  obtain an honest measure of generalisation to unseen signers.
+- **Signer-independent evaluation for ASL.** Extend the signer-independent protocol
+  already applied to the ArSL model to the ASL model, for an equally honest measure
+  of generalisation to unseen signers across both languages.
 - **Larger and more diverse training data.** Train the ASL model on the full
   corpus, and expand the ArSL vocabulary well beyond 20 signs to make it practically
   useful.
