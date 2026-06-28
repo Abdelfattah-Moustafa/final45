@@ -195,7 +195,7 @@ retrieved landmark sequences are stitched and played by the avatar.
 
 ## 4.6 Real-Time Integration
 
-The runtime pipeline is shown in Fig. 4.15. In the browser, webcam frames at 30 FPS
+The runtime pipeline for the ASL model is shown in Fig. 4.15. In the browser, webcam frames at 30 FPS
 are converted to landmarks, smoothed and gap-filled (missing hands sent as NaN, not
 zero), and buffered to 60 frames before being posted to `/api/translate`. The server
 runs the TFLite interpreter, applies the 0.80 acceptance gate, performs a majority
@@ -205,18 +205,27 @@ peer-to-peer WebRTC connection [33] coordinated by Socket.IO.
 
 ![Figure 4.15](figures/fig4_15_inference.png)
 
-**Figure 4.15 — Runtime inference & integration pipeline.**
+**Figure 4.15 — ASL runtime inference & integration pipeline.**
+
+The ArSL model follows an analogous pipeline, shown in Fig. 4.16, with two
+differences: its preprocessing runs **server-side in PyTorch** rather than inside a
+TFLite graph — resampling the buffered clip to 30 frames over the 59 selected
+landmarks — and its acceptance gate is **0.65** rather than 0.80.
+
+![Figure 4.16](figures/fig4_16_arsl_inference.png)
+
+**Figure 4.16 — ArSL runtime inference & integration pipeline.**
 
 ## 4.7 Model Comparison
 
-Fig. 4.16 contrasts the two models side by side. They share a landmark-based,
+Fig. 4.17 contrasts the two models side by side. They share a landmark-based,
 z-free input philosophy but diverge in scale and backbone: a transformer-based
 Squeezeformer exported to TFLite for the 250-class ASL task, and a lightweight
 PyTorch CNN-GRU for the 20-class ArSL task.
 
-![Figure 4.16](figures/fig4_16_models_compare.png)
+![Figure 4.17](figures/fig4_17_models_compare.png)
 
-**Figure 4.16 — ASL vs. ArSL model comparison.**
+**Figure 4.17 — ASL vs. ArSL model comparison.**
 
 The testing and validation of these models and of the end-to-end system — including
 the translation-quality metrics of Chapter 2's evaluation lenses — are reported in

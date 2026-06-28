@@ -280,7 +280,34 @@ title(ax, "Figure 4.15  —  Runtime inference & integration pipeline")
 save(fig, OUT, "fig4_15_inference.png")
 
 
-# ---- Fig 4.16  Side-by-side model comparison --------------------------------
+# ---- Fig 4.16  ArSL runtime inference / integration -------------------------
+fig, ax = newfig(12, 6, (0, 15), (0, 8))
+box(ax, 0.3, 6.6, 14.4, 0.8, "CLIENT (browser)", BLUE, 10, "bold")
+client = [("Webcam\n30 FPS", BLUE), ("MediaPipe\nlandmarks", BLUE), ("Smooth +\nimpute (NaN)", BLUE),
+          ("Buffer\nframes", BLUE)]
+x, w, gap = 0.3, 2.2, 0.25
+for i, (t, c) in enumerate(client):
+    box(ax, x, 5.0, w, 1.1, t, c, 8.5)
+    if i < len(client) - 1:
+        arrow(ax, x + w, 5.55, x + w + gap, 5.55)
+    x += w + gap
+arrow(ax, 8.75, 5.0, 8.75, 3.82)
+ax.text(9.0, 4.45, "landmarks (543 → 59 pts)", ha="left", fontsize=8, color=MUTE)
+box(ax, 0.3, 3.0, 14.4, 0.8, "SERVER (FastAPI)", AMBER, 10, "bold")
+server = [("POST /api/translate", AMBER), ("preprocess +\nPyTorch CNN-GRU", GREEN), ("gate ≥ 0.65", GREEN),
+          ("vote (last 15)", GREEN), ("gloss buffer", GREEN), ("5 s idle?", AMBER),
+          ("Gemini / Ollama\n(Arabic)", PURPLE), ("/api/tts → audio", ROSE)]
+x, w, gap = 0.3, 1.72, 0.1
+for i, (t, c) in enumerate(server):
+    box(ax, x, 1.6, w, 1.1, t, c, 7.5)
+    if i < len(server) - 1:
+        arrow(ax, x + w, 2.15, x + w + gap, 2.15)
+    x += w + gap
+title(ax, "Figure 4.16  —  ArSL runtime inference & integration pipeline")
+save(fig, OUT, "fig4_16_arsl_inference.png")
+
+
+# ---- Fig 4.17  Side-by-side model comparison --------------------------------
 fig, ax = newfig(10, 6, (0, 12), (0, 8))
 rows = [("", "ASL", "ArSL"),
         ("Dataset", "Google ISLR (250)", "Balaha ArSL (20)"),
@@ -298,7 +325,7 @@ for r, (a, b, c) in enumerate(rows):
     box(ax, x0 + w0, y, w1, yw, b, GREEN if r else GREY, 8.5, "bold" if r == 0 else "normal", round=False)
     box(ax, x0 + w0 + w1, y, w1, yw, c, PURPLE if r else GREY, 8.5, "bold" if r == 0 else "normal", round=False)
     y -= yw
-title(ax, "Figure 4.16  —  ASL vs. ArSL model comparison")
-save(fig, OUT, "fig4_16_models_compare.png")
+title(ax, "Figure 4.17  —  ASL vs. ArSL model comparison")
+save(fig, OUT, "fig4_17_models_compare.png")
 
 print("done")
