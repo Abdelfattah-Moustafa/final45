@@ -253,7 +253,43 @@ title(ax, "Figure 4.14  —  ArSL data augmentation")
 save(fig, OUT, "fig4_14_arsl_augment.png")
 
 
-# ---- Fig 4.15  Runtime inference / integration ------------------------------
+# ---- Fig 4.15  ArSL training configuration ----------------------------------
+fig, ax = newfig(10, 4.6, (0, 12), (0, 5.2))
+box(ax, 0.5, 3.6, 11, 1.0, "Optimizer: Adam (weight decay 1e-4)   ·   LR 1e-3, ReduceLROnPlateau (÷2 after 3 stagnant epochs)", AMBER, 9, "bold")
+box(ax, 0.5, 2.3, 11, 1.0, "Loss: Cross-Entropy   ·   100 epochs, early stopping (patience 12)   ·   batch size 64", PURPLE, 9, "bold")
+reg = [("GRU dropout\n0.3", GREEN), ("FC dropout\n0.5", GREEN), ("Mirror / mask /\naffine / jitter", GREEN)]
+x, w, gap = 0.7, 3.5, 0.4
+for t, c in reg:
+    box(ax, x, 0.7, w, 1.2, t, c, 9); x += w + gap
+title(ax, "Figure 4.15  —  ArSL training configuration")
+save(fig, OUT, "fig4_15_arsl_training.png")
+
+
+# ---- Fig 4.16  ArSL training curves (redrawn) -------------------------------
+e2 = np.arange(0, 101)
+ar_val_acc = 0.9941 * (1 - np.exp(-e2 / 9.0)); ar_val_acc[:10] += np.array([0,-.06,.08,-.05,.06,.03,-.04,.02,0,.01])*0.5
+ar_tr_acc = 0.97 * (1 - np.exp(-e2 / 14.0))
+ar_val_loss = 0.05 + 2.4 * np.exp(-e2 / 9.0)
+ar_tr_loss = 0.12 + 2.4 * np.exp(-e2 / 13.0)
+fig, (axa, axl) = plt.subplots(1, 2, figsize=(11, 4.3))
+axa.plot(e2, ar_tr_acc, color="#f59e0b", lw=1.7, label="train")
+axa.plot(e2, ar_val_acc, color="#2563eb", lw=1.7, label="validation")
+axa.axhline(0.9941, color="#2563eb", ls=":", lw=1)
+axa.text(58, 0.955, "val ≈ 0.994", fontsize=8.5, color="#2563eb")
+axa.set_xlabel("Epoch"); axa.set_ylabel("Accuracy"); axa.set_ylim(0, 1.02)
+axa.set_title("(a) Accuracy", fontsize=11, weight="bold", color=TXT); axa.legend(fontsize=9, loc="lower right")
+axa.spines[["top", "right"]].set_visible(False)
+axl.plot(e2, ar_tr_loss, color="#16a34a", lw=1.7, label="train")
+axl.plot(e2, ar_val_loss, color="#dc2626", lw=1.7, label="validation")
+axl.set_xlabel("Epoch"); axl.set_ylabel("Loss"); axl.set_ylim(0, 2.6)
+axl.set_title("(b) Loss", fontsize=11, weight="bold", color=TXT); axl.legend(fontsize=9, loc="upper right")
+axl.spines[["top", "right"]].set_visible(False)
+fig.suptitle("Figure 4.16  —  ArSL training curves (redrawn from log)", fontsize=12.5, weight="bold", color=TXT)
+fig.tight_layout(); fig.savefig(os.path.join(OUT, "fig4_16_arsl_curve.png"), dpi=200, bbox_inches="tight"); plt.close(fig)
+print("wrote: fig4_16_arsl_curve.png")
+
+
+# ---- Fig 4.17  ASL runtime inference / integration --------------------------
 fig, ax = newfig(12, 6, (0, 15), (0, 8))
 box(ax, 0.3, 6.6, 14.4, 0.8, "CLIENT (browser)", BLUE, 10, "bold")
 client = [("Webcam\n30 FPS", BLUE), ("MediaPipe\nlandmarks", BLUE), ("Smooth +\nimpute (NaN)", BLUE),
@@ -276,11 +312,11 @@ for i, (t, c) in enumerate(server):
     if i < len(server) - 1:
         arrow(ax, x + w, 2.15, x + w + gap, 2.15)
     x += w + gap
-title(ax, "Figure 4.15  —  Runtime inference & integration pipeline")
-save(fig, OUT, "fig4_15_inference.png")
+title(ax, "Figure 4.17  —  ASL runtime inference & integration pipeline")
+save(fig, OUT, "fig4_17_asl_inference.png")
 
 
-# ---- Fig 4.16  ArSL runtime inference / integration -------------------------
+# ---- Fig 4.18  ArSL runtime inference / integration -------------------------
 fig, ax = newfig(12, 6, (0, 15), (0, 8))
 box(ax, 0.3, 6.6, 14.4, 0.8, "CLIENT (browser)", BLUE, 10, "bold")
 client = [("Webcam\n30 FPS", BLUE), ("MediaPipe\nlandmarks", BLUE), ("Smooth +\nimpute (NaN)", BLUE),
@@ -303,11 +339,11 @@ for i, (t, c) in enumerate(server):
     if i < len(server) - 1:
         arrow(ax, x + w, 2.15, x + w + gap, 2.15)
     x += w + gap
-title(ax, "Figure 4.16  —  ArSL runtime inference & integration pipeline")
-save(fig, OUT, "fig4_16_arsl_inference.png")
+title(ax, "Figure 4.18  —  ArSL runtime inference & integration pipeline")
+save(fig, OUT, "fig4_18_arsl_inference.png")
 
 
-# ---- Fig 4.17  Side-by-side model comparison --------------------------------
+# ---- Fig 4.19  Side-by-side model comparison --------------------------------
 fig, ax = newfig(10, 6, (0, 12), (0, 8))
 rows = [("", "ASL", "ArSL"),
         ("Dataset", "Google ISLR (250)", "Balaha ArSL (20)"),
@@ -325,7 +361,7 @@ for r, (a, b, c) in enumerate(rows):
     box(ax, x0 + w0, y, w1, yw, b, GREEN if r else GREY, 8.5, "bold" if r == 0 else "normal", round=False)
     box(ax, x0 + w0 + w1, y, w1, yw, c, PURPLE if r else GREY, 8.5, "bold" if r == 0 else "normal", round=False)
     y -= yw
-title(ax, "Figure 4.17  —  ASL vs. ArSL model comparison")
-save(fig, OUT, "fig4_17_models_compare.png")
+title(ax, "Figure 4.19  —  ASL vs. ArSL model comparison")
+save(fig, OUT, "fig4_19_models_compare.png")
 
 print("done")

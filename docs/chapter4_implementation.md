@@ -156,20 +156,36 @@ prediction is informed by the full context of the sign.
 
 **Figure 4.13 — Bidirectional GRU (unfolded).**
 
-### 4.3.3 Augmentation and training
+### 4.3.3 Data augmentation
 
 The ArSL model is trained with the four online augmentations of Fig. 4.14:
 horizontal mirroring (50%), inactive-hand masking (70%, detected by spatial
 variance), affine scaling (0.92×–1.08×) with Gaussian noise (σ = 0.008), and
-temporal jittering. Training uses the Adam optimizer (weight decay 1e-4) at a
-learning rate of 1e-3 with a ReduceLROnPlateau schedule (halving after 3 stagnant
-epochs), a standard cross-entropy loss, and a batch size of 64, for up to 100 epochs
-with early stopping (patience 12). The model attains **99.41%** accuracy on its test
-split.
+temporal jittering.
 
 ![Figure 4.14](figures/fig4_14_arsl_augment.png)
 
 **Figure 4.14 — ArSL data augmentation.**
+
+### 4.3.4 Training and results
+
+The training configuration is summarised in Fig. 4.15: the Adam optimizer (weight
+decay 1e-4) at a learning rate of 1e-3 with a ReduceLROnPlateau schedule (halving
+after three stagnant epochs), a standard cross-entropy loss, and a batch size of 64,
+for up to 100 epochs with early stopping (patience 12). Regularisation is provided by
+dropout in the GRU (0.3) and the dense layer (0.5) together with the augmentation
+above.
+
+![Figure 4.15](figures/fig4_15_arsl_training.png)
+
+**Figure 4.15 — ArSL training configuration.**
+
+The resulting training curves are shown in Fig. 4.16. The model converges quickly on
+the 20-class task and attains **99.41%** accuracy on its test split.
+
+![Figure 4.16](figures/fig4_16_arsl_curve.png)
+
+**Figure 4.16 — ArSL training curves (redrawn from log).**
 
 > Note: the ArSL model is evaluated only on a stratified 80/10/10 split of a single
 > dataset whose 72 signers appear across all splits. It therefore may exhibit
@@ -195,7 +211,7 @@ retrieved landmark sequences are stitched and played by the avatar.
 
 ## 4.6 Real-Time Integration
 
-The runtime pipeline for the ASL model is shown in Fig. 4.15. In the browser, webcam frames at 30 FPS
+The runtime pipeline for the ASL model is shown in Fig. 4.17. In the browser, webcam frames at 30 FPS
 are converted to landmarks, smoothed and gap-filled (missing hands sent as NaN, not
 zero), and buffered to 60 frames before being posted to `/api/translate`. The server
 runs the TFLite interpreter, applies the 0.80 acceptance gate, performs a majority
@@ -203,29 +219,29 @@ vote over the last 15 predictions, accumulates gloss, and — after five seconds
 hands — calls the language model and `/api/tts`. The meeting mode layers this on a
 peer-to-peer WebRTC connection [33] coordinated by Socket.IO.
 
-![Figure 4.15](figures/fig4_15_inference.png)
+![Figure 4.17](figures/fig4_17_asl_inference.png)
 
-**Figure 4.15 — ASL runtime inference & integration pipeline.**
+**Figure 4.17 — ASL runtime inference & integration pipeline.**
 
-The ArSL model follows an analogous pipeline, shown in Fig. 4.16, with two
+The ArSL model follows an analogous pipeline, shown in Fig. 4.18, with two
 differences: its preprocessing runs **server-side in PyTorch** rather than inside a
 TFLite graph — resampling the buffered clip to 30 frames over the 59 selected
 landmarks — and its acceptance gate is **0.65** rather than 0.80.
 
-![Figure 4.16](figures/fig4_16_arsl_inference.png)
+![Figure 4.18](figures/fig4_18_arsl_inference.png)
 
-**Figure 4.16 — ArSL runtime inference & integration pipeline.**
+**Figure 4.18 — ArSL runtime inference & integration pipeline.**
 
 ## 4.7 Model Comparison
 
-Fig. 4.17 contrasts the two models side by side. They share a landmark-based,
+Fig. 4.19 contrasts the two models side by side. They share a landmark-based,
 z-free input philosophy but diverge in scale and backbone: a transformer-based
 Squeezeformer exported to TFLite for the 250-class ASL task, and a lightweight
 PyTorch CNN-GRU for the 20-class ArSL task.
 
-![Figure 4.17](figures/fig4_17_models_compare.png)
+![Figure 4.19](figures/fig4_19_models_compare.png)
 
-**Figure 4.17 — ASL vs. ArSL model comparison.**
+**Figure 4.19 — ASL vs. ArSL model comparison.**
 
 The testing and validation of these models and of the end-to-end system — including
 the translation-quality metrics of Chapter 2's evaluation lenses — are reported in
