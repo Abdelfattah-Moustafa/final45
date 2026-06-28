@@ -110,7 +110,7 @@ final dense layer), and **Adversarial Weight Perturbation** (λ = 0.2).
 
 **Figure 4.9 — ASL training configuration & regularization.**
 
-The resulting training curve is shown in Fig. 4.10. The model reaches a validation
+The resulting training curves are shown in Fig. 4.10. The model reaches a validation
 accuracy of approximately 0.80 on the competition metric; on the project's own test
 split it attains **88%** accuracy. Validation accuracy exceeding training accuracy is
 expected here, because the heavy augmentation and regularization are active only
@@ -118,7 +118,7 @@ during training.
 
 ![Figure 4.10](figures/fig4_10_asl_curve.png)
 
-**Figure 4.10 — ASL training curve (redrawn from log).**
+**Figure 4.10 — ASL training curves (redrawn from log).**
 
 ## 4.3 The ArSL Recognition Model
 
