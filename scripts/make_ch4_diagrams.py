@@ -264,7 +264,8 @@ for i, (t, c) in enumerate(client):
     if i < len(client) - 1:
         arrow(ax, x + w, 5.55, x + w + gap, 5.55)
     x += w + gap
-arrow(ax, x - gap + 0.0, 5.0, x - gap + 0.0, 4.2)
+arrow(ax, 8.75, 5.0, 8.75, 3.82)
+ax.text(9.0, 4.45, "landmarks (60×543×3)", ha="left", fontsize=8, color=MUTE)
 box(ax, 0.3, 3.0, 14.4, 0.8, "SERVER (FastAPI)", AMBER, 10, "bold")
 server = [("POST /api/translate", AMBER), ("TFLite infer", GREEN), ("gate ≥ 0.80", GREEN),
           ("vote (last 15)", GREEN), ("gloss buffer", GREEN), ("5 s idle?", AMBER),
@@ -275,8 +276,6 @@ for i, (t, c) in enumerate(server):
     if i < len(server) - 1:
         arrow(ax, x + w, 2.15, x + w + gap, 2.15)
     x += w + gap
-arrow(ax, 9.5, 5.0, 1.2, 2.7, rad=0.0, style="-|>")
-ax.text(5.0, 4.2, "landmarks (60×543×3)", fontsize=7.5, color=MUTE)
 title(ax, "Figure 4.15  —  Runtime inference & integration pipeline")
 save(fig, OUT, "fig4_15_inference.png")
 
