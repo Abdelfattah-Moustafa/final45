@@ -32,7 +32,14 @@ For reference, precision is the fraction of a class's predictions that are corre
 (TP / (TP + FP)), recall is the fraction of a class's true instances that are
 recovered (TP / (TP + FN)), F1 is their harmonic mean, and a confusion matrix
 cross-tabulates true against predicted labels so that systematic mistakes become
-visible.
+visible:
+
+$$
+\text{Accuracy} = \frac{\text{correct}}{\text{total}}, \quad
+P = \frac{TP}{TP + FP}, \quad
+R = \frac{TP}{TP + FN}, \quad
+F_1 = \frac{2PR}{P + R}. \tag{5.1}
+$$
 
 ## 5.2 Recognition Results
 
@@ -114,7 +121,22 @@ measures word n-gram overlap with a reference and is reported cumulatively from
 BLEU-1 (vocabulary) to BLEU-4 (fluency). **chrF** [35] measures character n-gram
 overlap and is more reliable for the morphologically rich Arabic output, where a
 correct-but-inflected word is unfairly penalised by word-level BLEU. Both are
-computed with a standardised scorer [36] against human references.
+computed with a standardised scorer [36] against human references. BLEU combines the
+modified n-gram precisions $p_n$ with a brevity penalty (BP), and chrF is the
+character-level F-score with recall weighted by $\beta$:
+
+$$
+\mathrm{BLEU} = \mathrm{BP}\cdot\exp\!\left(\sum_{n=1}^{N} w_n \ln p_n\right), \qquad
+\mathrm{BP} = \begin{cases} 1 & c > r \\ e^{\,1 - r/c} & c \le r \end{cases} \tag{5.2}
+$$
+
+$$
+\mathrm{chrF}_{\beta} = (1+\beta^{2})\,
+\frac{\mathrm{chrP}\cdot\mathrm{chrR}}{\beta^{2}\,\mathrm{chrP} + \mathrm{chrR}}, \tag{5.3}
+$$
+
+where $c$ and $r$ are the candidate and reference lengths, and chrP, chrR are the
+character n-gram precision and recall.
 
 ### 5.3.2 Results
 

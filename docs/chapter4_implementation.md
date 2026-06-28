@@ -40,6 +40,23 @@ sequences are padded to a maximum length of 384, giving a feature tensor of shap
 
 **Figure 4.2 — ASL preprocessing (embedded in the TFLite graph).**
 
+Formally, each coordinate is normalised relative to the nose landmark $X_{17}$ and
+the per-sequence standard deviation,
+
+$$
+\hat{X} = \frac{X - \mu}{\sigma}, \qquad \mu = X_{17}, \qquad
+\sigma = \sqrt{\frac{1}{N}\sum_{i=1}^{N}\left(X_i - \mu\right)^2}, \tag{4.1}
+$$
+
+and first- and second-order motion features are appended,
+
+$$
+\Delta^{1}X_t = X_{t-1} - X_t, \qquad \Delta^{2}X_t = X_{t-2} - X_t, \tag{4.2}
+$$
+
+so each frame is the concatenation $[\hat{X},\,\Delta^{1}X,\,\Delta^{2}X]$, giving
+$118 \times 6 = 708$ features.
+
 ### 4.2.2 Architecture
 
 The model adapts the Squeezeformer design of the top-performing Google ISLR
@@ -61,6 +78,13 @@ connection.
 
 **Figure 4.4 — Conv1DBlock internals.**
 
+The depthwise convolution is *causal*: the output at time $t$ depends only on the
+current and previous frames,
+
+$$
+y_t = \sum_{k=0}^{K-1} w_k \, x_{t-k}, \qquad K = 17. \tag{4.3}
+$$
+
 Efficient Channel Attention (Fig. 4.5) recalibrates channels cheaply: it
 global-average-pools each channel, applies a small 1-D convolution across channels,
 and scales the features by the resulting sigmoid weights.
@@ -69,6 +93,15 @@ and scales the features by the resulting sigmoid weights.
 
 **Figure 4.5 — Efficient Channel Attention (ECA).**
 
+Writing the per-channel global average pool as $z_c = \frac{1}{L}\sum_{t} x_{c,t}$,
+the channel weights and recalibrated output are
+
+$$
+s = \sigma\!\left(\mathrm{Conv1D}_k(z)\right), \qquad X' = s \odot X, \tag{4.4}
+$$
+
+where $\sigma$ is the sigmoid and $\odot$ denotes channel-wise scaling.
+
 The transformer block (Fig. 4.6) follows the standard design [28]: layer
 normalisation, multi-head self-attention, a residual connection, then a
 feed-forward MLP with its own residual.
@@ -76,6 +109,21 @@ feed-forward MLP with its own residual.
 ![Figure 4.6](figures/fig4_06_asl_transformerblock.png)
 
 **Figure 4.6 — TransformerBlock.**
+
+Its self-attention and feed-forward sub-layers are
+
+$$
+\mathrm{Attention}(Q,K,V) = \mathrm{softmax}\!\left(\frac{QK^{\top}}{\sqrt{d_k}}\right)V, \tag{4.5}
+$$
+
+$$
+\mathrm{MultiHead}(X) = \mathrm{Concat}(\mathrm{head}_1,\dots,\mathrm{head}_h)\,W^{O},
+\quad \mathrm{head}_i = \mathrm{Attention}(XW_i^{Q}, XW_i^{K}, XW_i^{V}), \tag{4.6}
+$$
+
+$$
+\mathrm{FFN}(x) = \mathrm{GELU}(xW_1 + b_1)\,W_2 + b_2. \tag{4.7}
+$$
 
 A key detail is the use of **causal padding** in the depthwise convolutions
 (Fig. 4.7): unlike "same" padding, causal padding prevents padded future frames from
@@ -110,11 +158,30 @@ final dense layer), and **Adversarial Weight Perturbation** (λ = 0.2).
 
 **Figure 4.9 — ASL training configuration & regularization.**
 
-The resulting training curves are shown in Fig. 4.10. The model reaches a validation
-accuracy of approximately 0.80 on the competition metric; on the project's own test
-split it attains **88%** accuracy. Validation accuracy exceeding training accuracy is
-expected here, because the heavy augmentation and regularization are active only
-during training.
+The classifier produces a probability distribution with the softmax,
+
+$$
+p_i = \frac{e^{z_i}}{\sum_{j=1}^{C} e^{z_j}}, \tag{4.8}
+$$
+
+and is trained with a label-smoothed categorical cross-entropy loss,
+
+$$
+\mathcal{L} = -\sum_{i=1}^{C} \tilde{y}_i \log p_i, \qquad
+\tilde{y}_i = (1-\varepsilon)\,y_i + \frac{\varepsilon}{C}, \quad \varepsilon = 0.1, \tag{4.9}
+$$
+
+under a cosine-decayed learning rate,
+
+$$
+\eta_t = \tfrac{1}{2}\,\eta_{\max}\!\left(1 + \cos\frac{\pi t}{T}\right). \tag{4.10}
+$$
+
+The resulting training curves are shown in Fig. 4.10. On its own test split the model
+attains **80%** accuracy, and it generalises to **62.4% Top-1** when evaluated
+cross-dataset on the independent WLASL benchmark (Chapter 5). Validation accuracy
+exceeding training accuracy is expected here, because the heavy augmentation and
+regularization are active only during training.
 
 ![Figure 4.10](figures/fig4_10_asl_curve.png)
 
@@ -135,6 +202,13 @@ fixed **30 frames**, producing a (30, 177) tensor.
 
 **Figure 4.11 — ArSL preprocessing pipeline.**
 
+With left and right shoulder landmarks $s_L$ and $s_R$, the coordinates are made
+position- and scale-invariant by
+
+$$
+\hat{X} = \frac{X - \tfrac{1}{2}\left(s_L + s_R\right)}{\lVert s_L - s_R \rVert}. \tag{4.11}
+$$
+
 ### 4.3.2 Architecture
 
 The ArSL model is a compact CNN-GRU (Fig. 4.12). Two 1-D convolutional blocks
@@ -148,6 +222,16 @@ prediction.
 
 **Figure 4.12 — ArSL CNN-GRU architecture.**
 
+Each convolution is followed by batch normalisation and a ReLU nonlinearity,
+
+$$
+\hat{x} = \frac{x - \mu_B}{\sqrt{\sigma_B^2 + \epsilon}}, \quad y = \gamma\hat{x} + \beta, \tag{4.12}
+$$
+
+$$
+\mathrm{ReLU}(x) = \max(0, x). \tag{4.13}
+$$
+
 The bidirectional GRU (Fig. 4.13) processes the 30-frame sequence in both temporal
 directions and concatenates the forward and backward hidden states, so each
 prediction is informed by the full context of the sign.
@@ -155,6 +239,21 @@ prediction is informed by the full context of the sign.
 ![Figure 4.13](figures/fig4_13_arsl_bigru.png)
 
 **Figure 4.13 — Bidirectional GRU (unfolded).**
+
+At each step the GRU updates its hidden state through its update gate $z_t$ and reset
+gate $r_t$,
+
+$$
+\begin{aligned}
+z_t &= \sigma\!\left(W_z x_t + U_z h_{t-1} + b_z\right), \\
+r_t &= \sigma\!\left(W_r x_t + U_r h_{t-1} + b_r\right), \\
+\tilde{h}_t &= \tanh\!\left(W_h x_t + U_h (r_t \odot h_{t-1}) + b_h\right), \\
+h_t &= (1 - z_t) \odot h_{t-1} + z_t \odot \tilde{h}_t,
+\end{aligned} \tag{4.14}
+$$
+
+and the bidirectional layer concatenates the forward and backward states,
+$h_t = [\,\overrightarrow{h}_t \,;\, \overleftarrow{h}_t\,]$ (4.15).
 
 ### 4.3.3 Data augmentation
 
